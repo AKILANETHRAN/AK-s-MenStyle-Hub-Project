@@ -1,0 +1,402 @@
+[
+  {
+    "id": 1,
+    "name": "Classic Oxford Slim-Fit Shirt",
+    "category": "Shirts",
+    "cloth_type": "Oxford Shirt",
+    "color": "Crisp White",
+    "garmentUrl": "https://assets.timberland.eu/images/t_img/f_auto,h_650,w_650,e_sharpen:60/dpr_2.0/v1748951449/TB0A6GPNA94-ALT10/Oxford-Shirt-for-Men-in-White.png"
+  },
+  {
+    "id": 2,
+    "name": "Tailored Navy Chambray Shirt",
+    "category": "Shirts",
+    "cloth_type": "Casual Shirt",
+    "color": "Navy Blue",
+    "garmentUrl": "https://img.freepik.com/premium-photo/plain-navy-blue-tshirt-invisible-mannequin-pure-white-background-studio-product-photography-crisp_1308352-1070.jpg?w=2000"
+  },
+  {
+    "id": 3,
+    "name": "Charcoal Textured Business Shirt",
+    "category": "Shirts",
+    "cloth_type": "Business Shirt",
+    "color": "Charcoal Grey",
+    "garmentUrl": "https://thumbs.dreamstime.com/z/grey-t-shirt-branding-isolated-white-background-ghost-mannequin-91159017.jpg"
+  },
+  {
+    "id": 4,
+    "name": "Relaxed Linen Cuban Collar Shirt",
+    "category": "Shirts",
+    "cloth_type": "Cuban Collar Shirt",
+    "color": "Olive Drab",
+    "garmentUrl": "https://pk.lamaretail.com/cdn/shop/files/MAS26TP027-OLIVE-CUBAN-COLLAR-TEXTURED-SHIRT-2f2b22_3_ee3a3c18-4907-40c5-b997-1b0be13b6a4b.jpg?v=1774505787&width=1080"
+  },
+  {
+    "id": 5,
+    "name": "Minimalist Jet Black Poplin Shirt",
+    "category": "Shirts",
+    "cloth_type": "Dress Shirt",
+    "color": "Jet Black",
+    "garmentUrl": "https://thumbs.dreamstime.com/z/black-t-shirt-mockup-invisible-mannequin-high-quality-realistic-d-rendering-template-perfect-showcasing-336648456.jpg"
+  },
+  {
+    "id": 6,
+    "name": "Brushed Buffalo Check Flannel Shirt",
+    "category": "Shirts",
+    "cloth_type": "Checked Shirt",
+    "color": "Slate Check",
+    "garmentUrl": "https://www.aussiepacific.com.au/cdn/shop/products/1tg7-mcNMHCSQcSOQoCoDUYmA9sLe5hSP_be01bcff577ace4b6531f0822e219c7b_700x700.jpg?v=1674017126"
+  },
+  {
+    "id": 7,
+    "name": "Band Collar Sand Linen Casual Shirt",
+    "category": "Shirts",
+    "cloth_type": "Linen Shirt",
+    "color": "Sand Beige",
+    "garmentUrl": "https://res.cloudinary.com/wolfandbadger/image/upload/c_pad,b_white,h_800,w_800/products/sand-beige-linen-shirt-for-men__8e444298795150f86aa09d81d9806d3d"
+  },
+  {
+    "id": 8,
+    "name": "Slate Blue Micro-Stripe Smart Shirt",
+    "category": "Shirts",
+    "cloth_type": "Business Shirt",
+    "color": "Slate Blue",
+    "garmentUrl": "https://p.turbosquid.com/ts-thumb/6f/Dlr7YX/m4jQMlgL/1/jpg/1473541234/1920x1080/fit_q87/f1d4365b72552e2b717a92f32a95074e41024f70/1.jpg"
+  },
+  {
+    "id": 9,
+    "name": "Washed Corduroy Overshirt Jacket",
+    "category": "Shirts",
+    "cloth_type": "Overshirt",
+    "color": "Earth Brown",
+    "garmentUrl": "https://cdn.shopify.com/s/files/1/0603/3031/1875/files/main-square_7910feb9-bd2f-45e2-ba0f-f16b6fa9296b.jpg?v=1719548481"
+  },
+  {
+    "id": 10,
+    "name": "Pima Cotton Knit Polo Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Polo Tee",
+    "color": "Steel Grey",
+    "garmentUrl": "https://img.freepik.com/premium-photo/men-gray-polo-t-shirt-mockup-front-back-view-isolated-white-background_1065650-810.jpg?w=2000"
+  },
+  {
+    "id": 11,
+    "name": "Heavyweight 240GSM Black Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Pitch Black",
+    "garmentUrl": "https://img.freepik.com/premium-photo/black-short-sleeve-tshirt-front-back-view-ghost-mannequin-concept-white-background_262099-4849.jpg?w=900"
+  },
+  {
+    "id": 12,
+    "name": "Minimalist Pure White Crewneck Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Pure White",
+    "garmentUrl": "https://img.freepik.com/premium-photo/template-basic-white-men-tshirt-ghost-mannequin-with-white-background_960782-179583.jpg?w=2000"
+  },
+  {
+    "id": 13,
+    "name": "Vintage Heather Grey Acid Wash Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Heather Grey",
+    "garmentUrl": "https://thebismarckmarathon.com/wp-content/uploads/2020/03/AdobeStock_249256338.jpeg"
+  },
+  {
+    "id": 14,
+    "name": "Bauhaus Monochrome Graphic Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Graphic T-Shirt",
+    "color": "Off-White",
+    "garmentUrl": "https://sp-ao.shortpixel.ai/client/to_webp,q_lossy,ret_img,w_1000,h_600/https://graphic-aid.com/wp-content/uploads/2024/09/ghost-mannequin-t-shirt-photographyy.jpg"
+  },
+  {
+    "id": 15,
+    "name": "Raw Hem Charcoal Long Sleeve Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Long Sleeve T-Shirt",
+    "color": "Charcoal",
+    "garmentUrl": "https://cdnp.sanmar.com/medias/sys_master/images/images/h6c/h13/13541533909022/1950-Charcoal-5-5400CharcoalFlatFront-1200W.jpg"
+  },
+  {
+    "id": 16,
+    "name": "Drop-Shoulder Oversized Khaki Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Oversized T-Shirt",
+    "color": "Khaki",
+    "garmentUrl": "https://img.freepik.com/premium-photo/realistic-ghost-mannequin-t-shirt-mockup-white-background_1007204-52692.jpg?w=2000"
+  },
+  {
+    "id": 17,
+    "name": "Supima Cotton Deep Navy V-Neck",
+    "category": "T-Shirts",
+    "cloth_type": "V-Neck T-Shirt",
+    "color": "Deep Navy",
+    "garmentUrl": "https://www.shutterstock.com/shutterstock/photos/2495608849/display_1500/stock-photo-navy-v-neck-t-shirt-design-templates-front-and-back-view-blank-t-shirt-mock-up-template-isolated-2495608849.jpg"
+  },
+  {
+    "id": 18,
+    "name": "Waffle Texture Mocha Henley Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Henley T-Shirt",
+    "color": "Mocha Brown",
+    "garmentUrl": "http://ruleofthreads.com/cdn/shop/files/Origin_Classic_Henley_Mochavino.jpg?v=1742504846"
+  },
+  {
+    "id": 19,
+    "name": "Abstract Minimal Typo Boxy Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Graphic T-Shirt",
+    "color": "Ash Grey",
+    "garmentUrl": "https://thumbs.dreamstime.com/b/gray-blank-t-shirt-invisible-mannequin-presented-front-back-views-against-white-background-366803581.jpg?w=768"
+  },
+  {
+    "id": 20,
+    "name": "Heavy Jersey Ribbed Collar T-Shirt",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Dark Taupe",
+    "garmentUrl": "https://thumbs.dreamstime.com/b/men-s-brown-dark-chocolate-blank-t-shirt-template-two-sides-natural-shape-invisible-mannequin-your-design-mockup-print-206952447.jpg"
+  },
+  {
+    "id": 21,
+    "name": "Classic Charcoal Formal Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Formal Trousers",
+    "color": "Charcoal Grey",
+    "garmentUrl": "https://www.myntraglobal.com/cdn/shop/files/e00025e3-d9fd-4011-8e10-dbbdbae515f11731492877770-Raymond-Men-Charcoal-Grey-Slim-Fit-Formal-Trousers-574173149-1.jpg?v=1755590313&width=1080"
+  },
+  {
+    "id": 22,
+    "name": "Navy Casual Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Casual Pants",
+    "color": "Navy Blue",
+    "garmentUrl": "https://cf-assets-thredup.thredup.com/assets/572740276/retina.jpg"
+  },
+  {
+    "id": 23,
+    "name": "Black Slim-Fit Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Slim-Fit Trousers",
+    "color": "Pitch Black",
+    "garmentUrl": "https://www.littleblacktux.com/cdn/shop/products/01.26.23LittleBlackTux-BlackPants_0006HR.jpg?v=1677631586&width=1000"
+  },
+  {
+    "id": 24,
+    "name": "Beige Chinos",
+    "category": "Pants & Trousers",
+    "cloth_type": "Chinos",
+    "color": "Warm Beige",
+    "garmentUrl": "https://thumbs.dreamstime.com/b/chinos-pants-isolated-white-ghost-fashion-style-photography-bei-beige-brown-90694607.jpg"
+  },
+  {
+    "id": 25,
+    "name": "Taupe Cargo Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Cargo Pants",
+    "color": "Muted Taupe",
+    "garmentUrl": "https://www.surfaceedition.com/web/product/big/202503/14581fa1e219910b7b2f306bb9349b29.jpg"
+  },
+  {
+    "id": 26,
+    "name": "Dark Brown Pleated Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Pleated Trousers",
+    "color": "Dark Brown",
+    "garmentUrl": "https://oyela.in/cdn/shop/files/DarkBrown-1_823dce35-f668-45f6-a98a-72badbe9f09d.png?v=1768906476"
+  },
+  {
+    "id": 27,
+    "name": "Slate Grey Jogger Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Jogger Pants",
+    "color": "Slate Grey",
+    "garmentUrl": "https://img.freepik.com/premium-psd/grey-jogger-pants-mockup-isolated-white-background_1264610-51335.jpg?w=2000"
+  },
+  {
+    "id": 28,
+    "name": "Cream Linen Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Linen Pants",
+    "color": "Cream",
+    "garmentUrl": "https://riadaconcept.com/cdn/shop/files/P2550PA81B_3347---Cream-Front.png?v=1767678020&width=1000"
+  },
+  {
+    "id": 29,
+    "name": "Stone Grey Tapered Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Tapered Trousers",
+    "color": "Stone Grey",
+    "garmentUrl": "https://cdn.clothbase.com/uploads/84082a33-5832-4548-970f-d997a8e8540a/image.jpg"
+  },
+  {
+    "id": 30,
+    "name": "Mocha Brown Wide-Leg Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Wide-Leg Trousers",
+    "color": "Mocha Brown",
+    "garmentUrl": "https://www.daisy-grace.com/cdn/shop/files/KIC_156-2302-0765-420_model5copy_1500x.jpg?v=1685530483"
+  },
+  {
+    "id": 31,
+    "name": "Heavy French Terry Grey Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Heather Grey",
+    "garmentUrl": "https://thumbs.dreamstime.com/b/heather-grey-pullover-hoodie-front-back-side-views-mannequin-adventurous-deeply-aesthetic-photorealistic-397434414.jpg"
+  },
+  {
+    "id": 32,
+    "name": "Deep Navy Thermal Fleece Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Deep Navy",
+    "garmentUrl": "https://img.freepik.com/premium-photo/navy-blue-hoodie-mockup-front-back-view-isolated-white-background_634190-10487.jpg"
+  },
+  {
+    "id": 33,
+    "name": "Minimalist Abstract Printed Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Printed Hoodie",
+    "color": "Off-White",
+    "garmentUrl": "https://i.pinimg.com/originals/96/66/13/966613fd38a15a8d9ed9f76ce31a50df.jpg"
+  },
+  {
+    "id": 34,
+    "name": "Boxy Drop-Shoulder Oversized Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Oversized Hoodie",
+    "color": "Charcoal Grey",
+    "garmentUrl": "https://www.wearview.co/_next/image?url=%2Fimages%2Ffeatures%2Fghost-mannequin%2Fhow-it-works%2Fstep1-upload-garment.webp&w=3840&q=75"
+  },
+  {
+    "id": 35,
+    "name": "Deep Maroon Brushed Cotton Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Deep Maroon",
+    "garmentUrl": "https://makeshop-multi-images.akamaized.net/awagadu1995/itemimages/000000018736_mL1Rxmw.jpg"
+  },
+  {
+    "id": 36,
+    "name": "Monochrome Colour Block Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Colour Block Hoodie",
+    "color": "Black & Grey",
+    "garmentUrl": "https://danami.ng/wp-content/uploads/2023/07/Colour-Black-And-Ash-Hoodie-b.jpg"
+  },
+  {
+    "id": 37,
+    "name": "Tactical Olive Full-Zip Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Zip-Up Hoodie",
+    "color": "Muted Olive",
+    "garmentUrl": "https://i5.walmartimages.com/seo/Men-s-Heavyweight-Thermal-Zip-Up-Hoodie-Warm-Sherpa-Lined-Sweater-Jacket-Dark-Olive-M_73fbd0bd-32a9-447d-8709-98504c024232.ef1f95251843353ce92f5df5edd259a0.jpeg"
+  },
+  {
+    "id": 38,
+    "name": "Sand Stone Relaxed Fleece Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Sand Stone",
+    "garmentUrl": "https://img.freepik.com/premium-photo/invisible-mannequin-with-hoodie-isolated-white-background_373676-2010.jpg?w=2000"
+  },
+  {
+    "id": 39,
+    "name": "Vintage Mineral Wash Dark Grey Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Washed Hoodie",
+    "color": "Mineral Grey",
+    "garmentUrl": "https://i.etsystatic.com/38360999/r/il/baec0f/5268594663/il_1140xN.5268594663_tm5q.jpg"
+  },
+  {
+    "id": 40,
+    "name": "Minimalist Raglan Sleeve Cream Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Natural Cream",
+    "garmentUrl": "https://img.freepik.com/premium-photo/blank-front-view-hoodie-white-mockup-natural-shape-invisible-mannequin-isolated-white-background_373676-1034.jpg?w=2000"
+  },
+  {
+    "id": 41,
+    "name": "Vintage Wash Classic Denim Jacket",
+    "category": "Jackets",
+    "cloth_type": "Denim Jacket",
+    "color": "Washed Indigo",
+    "garmentUrl": "https://wearebraindead.com/cdn/shop/files/14.75oz_Denim_Trucker_Jacket_-_Washed_Indigo_01-optimized.jpg?v=1760483532&width=1024"
+  },
+  {
+    "id": 42,
+    "name": "Matte Black Tactical Bomber Jacket",
+    "category": "Jackets",
+    "cloth_type": "Bomber Jacket",
+    "color": "Matte Black",
+    "garmentUrl": "https://img.freepik.com/premium-photo/plain-black-bomber-jacket-with-white-background_1059430-48462.jpg?w=2000"
+  },
+  {
+    "id": 43,
+    "name": "Quilted Ultralight Puffer Jacket",
+    "category": "Jackets",
+    "cloth_type": "Quilted Puffer Jacket",
+    "color": "Charcoal Grey",
+    "garmentUrl": "https://i.ebayimg.com/images/g/IMsAAOSweDhn-oCB/s-l1600.png"
+  },
+  {
+    "id": 44,
+    "name": "Heritage Wool-Blend Varsity Jacket",
+    "category": "Jackets",
+    "cloth_type": "Varsity Jacket",
+    "color": "Navy & Grey",
+    "garmentUrl": "https://tryout-sports.com/wp-content/uploads/College-Baseball-Jackets-with-Grey-navi-1-1200x1200.jpg"
+  },
+  {
+    "id": 45,
+    "name": "Asymmetric Ashen Faux Biker Jacket",
+    "category": "Jackets",
+    "cloth_type": "Biker Jacket",
+    "color": "Ashen Charcoal",
+    "garmentUrl": "https://st4.depositphotos.com/1226172/21801/i/1600/depositphotos_218019568-stock-photo-mens-black-leather-jacket-isolated.jpg"
+  },
+  {
+    "id": 46,
+    "name": "Water-Resistant Windbreaker Jacket",
+    "category": "Jackets",
+    "cloth_type": "Windbreaker",
+    "color": "Pitch Black",
+    "garmentUrl": "https://img.freepik.com/premium-photo/black-sports-windbreaker-jacket-isolated-from-white-background_75891-3567.jpg?w=2000"
+  },
+  {
+    "id": 47,
+    "name": "Safari Utility Field Jacket",
+    "category": "Jackets",
+    "cloth_type": "Field Jacket",
+    "color": "Desert Khaki",
+    "garmentUrl": "https://www.careofcarl.com/bilder/artiklar/zoom/22538111r_3.jpg?m=1641817443"
+  },
+  {
+    "id": 48,
+    "name": "Minimalist Harrington Casual Jacket",
+    "category": "Jackets",
+    "cloth_type": "Harrington Jacket",
+    "color": "Navy Blue",
+    "garmentUrl": "https://res.cloudinary.com/dywddyctw/image/upload/c_fill,w_1920,h_1920,g_center/f_auto/q_auto/v1/navy-harrington-jacket-tartan-lining-ghost-mannequin-photograph-my-product_bwi9x9"
+  },
+  {
+    "id": 49,
+    "name": "Coach Snap-Button Trench Jacket",
+    "category": "Jackets",
+    "cloth_type": "Coach Jacket",
+    "color": "Stone Grey",
+    "garmentUrl": "https://cdna.lystit.com/520/650/n/photos/harrods/416b999a/stone-island-Grey-David-Light-Tc-Ghost-Coach-Jacket.jpeg"
+  },
+  {
+    "id": 50,
+    "name": "Corduroy Collar Workwear Jacket",
+    "category": "Jackets",
+    "cloth_type": "Workwear Jacket",
+    "color": "Tobacco Brown",
+    "garmentUrl": "https://i.etsystatic.com/6858395/r/il/0c1b1e/6847702346/il_794xN.6847702346_aufy.jpg"
+  }
+]

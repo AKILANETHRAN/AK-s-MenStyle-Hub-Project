@@ -1,0 +1,702 @@
+[
+  {
+    "id": 1,
+    "name": "Classic Oxford Slim-Fit Shirt",
+    "category": "Shirts",
+    "cloth_type": "Oxford Shirt",
+    "color": "Crisp White"
+  },
+  {
+    "id": 2,
+    "name": "Tailored Navy Chambray Shirt",
+    "category": "Shirts",
+    "cloth_type": "Casual Shirt",
+    "color": "Navy Blue"
+  },
+  {
+    "id": 3,
+    "name": "Charcoal Textured Business Shirt",
+    "category": "Shirts",
+    "cloth_type": "Business Shirt",
+    "color": "Charcoal Grey"
+  },
+  {
+    "id": 4,
+    "name": "Relaxed Linen Cuban Collar Shirt",
+    "category": "Shirts",
+    "cloth_type": "Cuban Collar Shirt",
+    "color": "Olive Drab"
+  },
+  {
+    "id": 5,
+    "name": "Minimalist Jet Black Poplin Shirt",
+    "category": "Shirts",
+    "cloth_type": "Dress Shirt",
+    "color": "Jet Black"
+  },
+  {
+    "id": 6,
+    "name": "Brushed Buffalo Check Flannel Shirt",
+    "category": "Shirts",
+    "cloth_type": "Checked Shirt",
+    "color": "Slate Check"
+  },
+  {
+    "id": 7,
+    "name": "Band Collar Sand Linen Casual Shirt",
+    "category": "Shirts",
+    "cloth_type": "Linen Shirt",
+    "color": "Sand Beige"
+  },
+  {
+    "id": 8,
+    "name": "Slate Blue Micro-Stripe Smart Shirt",
+    "category": "Shirts",
+    "cloth_type": "Business Shirt",
+    "color": "Slate Blue"
+  },
+  {
+    "id": 9,
+    "name": "Washed Corduroy Overshirt Jacket",
+    "category": "Shirts",
+    "cloth_type": "Overshirt",
+    "color": "Earth Brown"
+  },
+  {
+    "id": 10,
+    "name": "Pima Cotton Knit Polo Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Polo Tee",
+    "color": "Steel Grey"
+  },
+  {
+    "id": 11,
+    "name": "Heavyweight 240GSM Black Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Pitch Black"
+  },
+  {
+    "id": 12,
+    "name": "Minimalist Pure White Crewneck Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Pure White"
+  },
+  {
+    "id": 13,
+    "name": "Vintage Heather Grey Acid Wash Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Heather Grey"
+  },
+  {
+    "id": 14,
+    "name": "Bauhaus Monochrome Graphic Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Graphic T-Shirt",
+    "color": "Off-White"
+  },
+  {
+    "id": 15,
+    "name": "Raw Hem Charcoal Long Sleeve Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Long Sleeve T-Shirt",
+    "color": "Charcoal"
+  },
+  {
+    "id": 16,
+    "name": "Drop-Shoulder Oversized Khaki Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Oversized T-Shirt",
+    "color": "Khaki"
+  },
+  {
+    "id": 17,
+    "name": "Supima Cotton Deep Navy V-Neck",
+    "category": "T-Shirts",
+    "cloth_type": "V-Neck T-Shirt",
+    "color": "Deep Navy"
+  },
+  {
+    "id": 18,
+    "name": "Waffle Texture Mocha Henley Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Henley T-Shirt",
+    "color": "Mocha Brown"
+  },
+  {
+    "id": 19,
+    "name": "Abstract Minimal Typo Boxy Tee",
+    "category": "T-Shirts",
+    "cloth_type": "Graphic T-Shirt",
+    "color": "Ash Grey"
+  },
+  {
+    "id": 20,
+    "name": "Heavy Jersey Ribbed Collar T-Shirt",
+    "category": "T-Shirts",
+    "cloth_type": "Plain T-Shirt",
+    "color": "Dark Taupe"
+  },
+  {
+    "id": 21,
+    "name": "Classic Charcoal Formal Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Formal Trousers",
+    "color": "Charcoal Grey"
+  },
+  {
+    "id": 22,
+    "name": "Navy Casual Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Casual Pants",
+    "color": "Navy Blue"
+  },
+  {
+    "id": 23,
+    "name": "Black Slim-Fit Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Slim-Fit Trousers",
+    "color": "Pitch Black"
+  },
+  {
+    "id": 24,
+    "name": "Beige Chinos",
+    "category": "Pants & Trousers",
+    "cloth_type": "Chinos",
+    "color": "Warm Beige"
+  },
+  {
+    "id": 25,
+    "name": "Taupe Cargo Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Cargo Pants",
+    "color": "Muted Taupe"
+  },
+  {
+    "id": 26,
+    "name": "Dark Brown Pleated Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Pleated Trousers",
+    "color": "Dark Brown"
+  },
+  {
+    "id": 27,
+    "name": "Slate Grey Jogger Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Jogger Pants",
+    "color": "Slate Grey"
+  },
+  {
+    "id": 28,
+    "name": "Cream Linen Pants",
+    "category": "Pants & Trousers",
+    "cloth_type": "Linen Pants",
+    "color": "Cream"
+  },
+  {
+    "id": 29,
+    "name": "Stone Grey Tapered Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Tapered Trousers",
+    "color": "Stone Grey"
+  },
+  {
+    "id": 30,
+    "name": "Mocha Brown Wide-Leg Trousers",
+    "category": "Pants & Trousers",
+    "cloth_type": "Wide-Leg Trousers",
+    "color": "Mocha Brown"
+  },
+  {
+    "id": 31,
+    "name": "Heavy French Terry Grey Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Heather Grey"
+  },
+  {
+    "id": 32,
+    "name": "Deep Navy Thermal Fleece Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Deep Navy"
+  },
+  {
+    "id": 33,
+    "name": "Minimalist Abstract Printed Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Printed Hoodie",
+    "color": "Off-White"
+  },
+  {
+    "id": 34,
+    "name": "Boxy Drop-Shoulder Oversized Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Oversized Hoodie",
+    "color": "Charcoal Grey"
+  },
+  {
+    "id": 35,
+    "name": "Deep Maroon Brushed Cotton Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Deep Maroon"
+  },
+  {
+    "id": 36,
+    "name": "Monochrome Colour Block Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Colour Block Hoodie",
+    "color": "Black & Grey"
+  },
+  {
+    "id": 37,
+    "name": "Tactical Olive Full-Zip Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Zip-Up Hoodie",
+    "color": "Muted Olive"
+  },
+  {
+    "id": 38,
+    "name": "Sand Stone Relaxed Fleece Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Sand Stone"
+  },
+  {
+    "id": 39,
+    "name": "Vintage Mineral Wash Dark Grey Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Washed Hoodie",
+    "color": "Mineral Grey"
+  },
+  {
+    "id": 40,
+    "name": "Minimalist Raglan Sleeve Cream Hoodie",
+    "category": "Hoodies",
+    "cloth_type": "Pullover Hoodie",
+    "color": "Natural Cream"
+  },
+  {
+    "id": 41,
+    "name": "Vintage Wash Classic Denim Jacket",
+    "category": "Jackets",
+    "cloth_type": "Denim Jacket",
+    "color": "Washed Indigo"
+  },
+  {
+    "id": 42,
+    "name": "Matte Black Tactical Bomber Jacket",
+    "category": "Jackets",
+    "cloth_type": "Bomber Jacket",
+    "color": "Matte Black"
+  },
+  {
+    "id": 43,
+    "name": "Quilted Ultralight Puffer Jacket",
+    "category": "Jackets",
+    "cloth_type": "Quilted Puffer Jacket",
+    "color": "Charcoal Grey"
+  },
+  {
+    "id": 44,
+    "name": "Heritage Wool-Blend Varsity Jacket",
+    "category": "Jackets",
+    "cloth_type": "Varsity Jacket",
+    "color": "Navy & Grey"
+  },
+  {
+    "id": 45,
+    "name": "Asymmetric Ashen Faux Biker Jacket",
+    "category": "Jackets",
+    "cloth_type": "Biker Jacket",
+    "color": "Ashen Charcoal"
+  },
+  {
+    "id": 46,
+    "name": "Water-Resistant Windbreaker Jacket",
+    "category": "Jackets",
+    "cloth_type": "Windbreaker",
+    "color": "Pitch Black"
+  },
+  {
+    "id": 47,
+    "name": "Safari Utility Field Jacket",
+    "category": "Jackets",
+    "cloth_type": "Field Jacket",
+    "color": "Desert Khaki"
+  },
+  {
+    "id": 48,
+    "name": "Minimalist Harrington Casual Jacket",
+    "category": "Jackets",
+    "cloth_type": "Harrington Jacket",
+    "color": "Navy Blue"
+  },
+  {
+    "id": 49,
+    "name": "Coach Snap-Button Trench Jacket",
+    "category": "Jackets",
+    "cloth_type": "Coach Jacket",
+    "color": "Stone Grey"
+  },
+  {
+    "id": 50,
+    "name": "Corduroy Collar Workwear Jacket",
+    "category": "Jackets",
+    "cloth_type": "Workwear Jacket",
+    "color": "Tobacco Brown"
+  },
+  {
+    "id": 51,
+    "name": "Classic White Leather Low Sneakers",
+    "category": "Shoes",
+    "cloth_type": "Sneakers",
+    "color": "Crisp White"
+  },
+  {
+    "id": 52,
+    "name": "Minimalist Black Canvas Skate Shoes",
+    "category": "Shoes",
+    "cloth_type": "Skate Shoes",
+    "color": "Pitch Black"
+  },
+  {
+    "id": 53,
+    "name": "Suede Chelsea Boots in Sand",
+    "category": "Shoes",
+    "cloth_type": "Chelsea Boots",
+    "color": "Sand Beige"
+  },
+  {
+    "id": 54,
+    "name": "Leather Penny Loafers in Dark Brown",
+    "category": "Shoes",
+    "cloth_type": "Penny Loafers",
+    "color": "Dark Brown"
+  },
+  {
+    "id": 55,
+    "name": "Breathable Mesh Running Trainers",
+    "category": "Shoes",
+    "cloth_type": "Trainers",
+    "color": "Cool Grey"
+  },
+  {
+    "id": 56,
+    "name": "Formal Oxford Dress Shoes in Black",
+    "category": "Shoes",
+    "cloth_type": "Oxford Shoes",
+    "color": "Gloss Black"
+  },
+  {
+    "id": 57,
+    "name": "Retro High-Top Court Sneakers",
+    "category": "Shoes",
+    "cloth_type": "High-Tops",
+    "color": "White & Navy"
+  },
+  {
+    "id": 58,
+    "name": "Leather Driving Moccasins",
+    "category": "Shoes",
+    "cloth_type": "Driving Shoes",
+    "color": "Tan Brown"
+  },
+  {
+    "id": 59,
+    "name": "Chunky Sole Casual Derby Shoes",
+    "category": "Shoes",
+    "cloth_type": "Derby Shoes",
+    "color": "Matte Black"
+  },
+  {
+    "id": 60,
+    "name": "Navy Canvas Slip-On Espadrilles",
+    "category": "Shoes",
+    "cloth_type": "Espadrilles",
+    "color": "Navy Blue"
+  },
+  {
+    "id": 61,
+    "name": "Minimalist Matte Black Mesh Watch",
+    "category": "Watches",
+    "cloth_type": "Minimalist Watch",
+    "color": "Matte Black"
+  },
+  {
+    "id": 62,
+    "name": "Silver Chronograph Leather Strap Watch",
+    "category": "Watches",
+    "cloth_type": "Chronograph",
+    "color": "Brown & Silver"
+  },
+  {
+    "id": 63,
+    "name": "Bauhaus White Dial Minimalist Watch",
+    "category": "Watches",
+    "cloth_type": "Dress Watch",
+    "color": "White & Silver"
+  },
+  {
+    "id": 64,
+    "name": "Gunmetal Steel Link Bracelet Watch",
+    "category": "Watches",
+    "cloth_type": "Steel Watch",
+    "color": "Gunmetal"
+  },
+  {
+    "id": 65,
+    "name": "Vintage Gold-Tone Dress Watch",
+    "category": "Watches",
+    "cloth_type": "Vintage Watch",
+    "color": "Gold & Black"
+  },
+  {
+    "id": 66,
+    "name": "Tactical Dual-Time Field Watch",
+    "category": "Watches",
+    "cloth_type": "Field Watch",
+    "color": "Olive & Black"
+  },
+  {
+    "id": 67,
+    "name": "Minimalist Pilot Aviation Quartz Watch",
+    "category": "Watches",
+    "cloth_type": "Pilot Watch",
+    "color": "Matte Black"
+  },
+  {
+    "id": 68,
+    "name": "Rose Gold Accent Leather Watch",
+    "category": "Watches",
+    "cloth_type": "Dress Watch",
+    "color": "Rose Gold & Navy"
+  },
+  {
+    "id": 69,
+    "name": "Titanium-Finish Slimline Watch",
+    "category": "Watches",
+    "cloth_type": "Slim Watch",
+    "color": "Titanium Grey"
+  },
+  {
+    "id": 70,
+    "name": "Retro Digital Steel Watch",
+    "category": "Watches",
+    "cloth_type": "Digital Watch",
+    "color": "Silver Steel"
+  },
+  {
+    "id": 71,
+    "name": "Washed Cotton Low-Profile Dad Cap",
+    "category": "Caps",
+    "cloth_type": "Baseball Cap",
+    "color": "Washed Black"
+  },
+  {
+    "id": 72,
+    "name": "Structured Twill Snapback Cap",
+    "category": "Caps",
+    "cloth_type": "Snapback Cap",
+    "color": "Charcoal Grey"
+  },
+  {
+    "id": 73,
+    "name": "Merino Wool Blend Minimalist Beanie",
+    "category": "Caps",
+    "cloth_type": "Beanie",
+    "color": "Heather Grey"
+  },
+  {
+    "id": 74,
+    "name": "Classic Navy Curved Brim Baseball Cap",
+    "category": "Caps",
+    "cloth_type": "Baseball Cap",
+    "color": "Navy Blue"
+  },
+  {
+    "id": 75,
+    "name": "Vintage Corduroy Unstructured Cap",
+    "category": "Caps",
+    "cloth_type": "Corduroy Cap",
+    "color": "Tan Brown"
+  },
+  {
+    "id": 76,
+    "name": "Suede-Finish Streetwear Cap",
+    "category": "Caps",
+    "cloth_type": "Suede Cap",
+    "color": "Muted Olive"
+  },
+  {
+    "id": 77,
+    "name": "Ultralight Performance Runner Cap",
+    "category": "Caps",
+    "cloth_type": "Sports Cap",
+    "color": "Pure White"
+  },
+  {
+    "id": 78,
+    "name": "Ribbed Knit Short Fisherman Beanie",
+    "category": "Caps",
+    "cloth_type": "Beanie",
+    "color": "Pitch Black"
+  },
+  {
+    "id": 79,
+    "name": "Houndstooth Newsboy Ivy Flat Cap",
+    "category": "Caps",
+    "cloth_type": "Flat Cap",
+    "color": "Grey Houndstooth"
+  },
+  {
+    "id": 80,
+    "name": "Weatherproof 5-Panel Camper Cap",
+    "category": "Caps",
+    "cloth_type": "5-Panel Cap",
+    "color": "Slate Grey"
+  },
+  {
+    "id": 81,
+    "name": "Full Grain Leather Dress Belt",
+    "category": "Belts",
+    "cloth_type": "Formal Belt",
+    "color": "Classic Black"
+  },
+  {
+    "id": 82,
+    "name": "Reversible Tan to Black Leather Belt",
+    "category": "Belts",
+    "cloth_type": "Reversible Belt",
+    "color": "Tan & Black"
+  },
+  {
+    "id": 83,
+    "name": "Braided Stretch Fabric Casual Belt",
+    "category": "Belts",
+    "cloth_type": "Braided Belt",
+    "color": "Navy & Brown"
+  },
+  {
+    "id": 84,
+    "name": "Distressed Suede Casual Jean Belt",
+    "category": "Belts",
+    "cloth_type": "Casual Belt",
+    "color": "Chocolate Brown"
+  },
+  {
+    "id": 85,
+    "name": "Matte Gunmetal Buckle Leather Belt",
+    "category": "Belts",
+    "cloth_type": "Dress Belt",
+    "color": "Dark Charcoal"
+  },
+  {
+    "id": 86,
+    "name": "Military Spec Tactical Webbing Belt",
+    "category": "Belts",
+    "cloth_type": "Web Belt",
+    "color": "Tactical Olive"
+  },
+  {
+    "id": 87,
+    "name": "Minimalist Stitch-Detail Brown Belt",
+    "category": "Belts",
+    "cloth_type": "Leather Belt",
+    "color": "Mocha Brown"
+  },
+  {
+    "id": 88,
+    "name": "Automatic Ratchet Click Belt",
+    "category": "Belts",
+    "cloth_type": "Ratchet Belt",
+    "color": "Pitch Black"
+  },
+  {
+    "id": 89,
+    "name": "Textured Saffiano Italian Leather Belt",
+    "category": "Belts",
+    "cloth_type": "Luxury Belt",
+    "color": "Deep Brown"
+  },
+  {
+    "id": 90,
+    "name": "Vintage Double-Prong Workwear Belt",
+    "category": "Belts",
+    "cloth_type": "Vintage Belt",
+    "color": "Antique Brown"
+  },
+  {
+    "id": 91,
+    "name": "Polarized Classic Wayfarer Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Wayfarer",
+    "color": "Matte Black"
+  },
+  {
+    "id": 92,
+    "name": "Aviator Metal Teardrop Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Aviator",
+    "color": "Silver & Smoke Grey"
+  },
+  {
+    "id": 93,
+    "name": "Vintage Round Tortoise Shell Shades",
+    "category": "Sunglasses",
+    "cloth_type": "Round Frame",
+    "color": "Dark Tortoise"
+  },
+  {
+    "id": 94,
+    "name": "Modern Clubmaster Browline Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Browline",
+    "color": "Black & Gold"
+  },
+  {
+    "id": 95,
+    "name": "Geometric Hexagonal Metal Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Geometric",
+    "color": "Gunmetal"
+  },
+  {
+    "id": 96,
+    "name": "Minimalist Rimless Polarized Shades",
+    "category": "Sunglasses",
+    "cloth_type": "Rimless",
+    "color": "Charcoal Grey"
+  },
+  {
+    "id": 97,
+    "name": "Flat-Top Modern Shield Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Shield",
+    "color": "Gloss Black"
+  },
+  {
+    "id": 98,
+    "name": "Gradient Lens Pilot Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Pilot",
+    "color": "Gold & Amber"
+  },
+  {
+    "id": 99,
+    "name": "Retro Square Acetate Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Square Frame",
+    "color": "Slate Grey"
+  },
+  {
+    "id": 100,
+    "name": "Outdoor UV400 Sport Wrap Sunglasses",
+    "category": "Sunglasses",
+    "cloth_type": "Sport Sunglasses",
+    "color": "Matte Navy"
+  }
+]
