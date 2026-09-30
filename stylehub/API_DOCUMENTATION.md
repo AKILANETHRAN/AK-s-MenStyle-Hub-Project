@@ -111,6 +111,63 @@ Retrieves current authenticated user session data securely from token.
   }
   ```
 
+### GET `/api/auth/google/config`
+Retrieves public Google OAuth configuration for frontend initialization.
+- **Auth Required**: No
+- **Response `200 OK`**:
+  ```json
+  {
+    "clientId": "your_google_client_id.apps.googleusercontent.com",
+    "configured": true,
+    "redirectUri": "http://localhost:5000/api/auth/google/callback"
+  }
+  ```
+
+### GET `/api/auth/google/url`
+Generates Google OAuth2 authorization consent URL for redirect authentication flow.
+- **Auth Required**: No
+- **Query Parameters**: `redirect_uri` (optional), `state` (optional)
+- **Response `200 OK`**:
+  ```json
+  {
+    "url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=your_google_client_id.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fapi%2Fauth%2Fgoogle%2Fcallback&response_type=code&scope=openid+email+profile&access_type=offline&prompt=select_account&state=...",
+    "state": "...",
+    "redirectUri": "http://localhost:5000/api/auth/google/callback"
+  }
+  ```
+
+### POST `/api/auth/google`
+Authenticates via Google Identity Services (GIS) ID Token or exchanges Authorization Code. Synchronizes the user account in SQLite and returns standard JWT session.
+- **Auth Required**: No
+- **Request Body**:
+  ```json
+  {
+    "credential": "<GOOGLE_ID_TOKEN_JWT>"
+  }
+  ```
+  *or with authorization code:*
+  ```json
+  {
+    "code": "<AUTHORIZATION_CODE>",
+    "redirectUri": "http://localhost:5173/auth/google/callback"
+  }
+  ```
+- **Response `200 OK` (Existing User) / `201 Created` (New User)**:
+  ```json
+  {
+    "status": "success",
+    "token": "<JWT_STRING>",
+    "user": {
+      "id": 1011,
+      "username": "akil_customer",
+      "fullName": "Akil Customer",
+      "email": "customer@gmail.com",
+      "role": "USER",
+      "avatarUrl": "https://lh3.googleusercontent.com/..."
+    }
+  }
+  ```
+
 ---
 
 ## 3. Product Catalog (`/api/products`)
@@ -388,3 +445,213 @@ Returns neural try-on telemetry: total runs, tops count, bottoms count, success 
 Returns aggregate recent transactions, registrations, and peer look sharing events.
 
 - **Auth Required**: Yes (`role === 'ADMIN'`)
+
+---
+
+## 12. Google OAuth Integration (`/api/auth/google`)
+
+### GET `/api/auth/google/config`
+Returns public Google OAuth Client ID and configuration state for the client interface.
+
+- **Auth Required**: No
+- **Response `200 OK`**:
+  ```json
+  {
+    "clientId": "your_google_client_id.apps.googleusercontent.com",
+    "configured": true
+  }
+  ```
+
+### GET `/api/auth/google/url`
+Generates a secure Google OAuth consent redirect URL with CSRF state protection.
+
+- **Auth Required**: No
+- **Query Parameters**:
+  - `redirect_uri` *(optional)*: Override callback destination (defaults to `/auth/google/callback`)
+  - `state` *(optional)*: Cryptographic CSRF state token
+- **Response `200 OK`**:
+  ```json
+  {
+    "url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=...&redirect_uri=...&response_type=code&scope=openid+email+profile&access_type=offline&prompt=select_account&state=...",
+    "state": "<16_BYTE_HEX_STATE>"
+  }
+  ```
+
+### GET `/api/auth/google/callback`
+Server-side callback relay that safely forwards code/state to the frontend application.
+
+- **Auth Required**: No
+- **Query Parameters**: `code`, `state`, `error`
+- **Response**: `302 Redirect` to `/auth/google/callback?code=...&state=...`
+
+### POST `/api/auth/google`
+Authenticates a user via Google Identity Services (GIS) ID Token or Authorization Code. Matches existing verified email or creates a new account with role `USER`. Returns standard AK'S MEN STYLE JWT.
+
+- **Auth Required**: No
+- **Request Body** *(One of the following)*:
+  ```json
+  { "credential": "<GOOGLE_ID_TOKEN>" }
+  ```
+  *or*
+  ```json
+  { "code": "<AUTHORIZATION_CODE>", "redirectUri": "http://localhost:5173/auth/google/callback" }
+  ```
+- **Response `200 OK` / `201 Created`**:
+  ```json
+  {
+    "status": "success",
+    "token": "<JWT_STRING>",
+    "user": {
+      "id": 14,
+      "username": "akil_sundaram",
+      "fullName": "Akil Sundaram",
+      "email": "akil.sundaram@gmail.com",
+      "role": "USER",
+      "avatarUrl": "https://lh3.googleusercontent.com/..."
+    }
+  }
+  ```
+
+---
+
+## 13. Settings & Preferences (`/api/settings`)
+
+### GET `/api/settings`
+Retrieves authenticated user's color theme, language preference, communication channel toggles, and delivery account summary.
+
+- **Auth Required**: Yes (`Bearer <TOKEN>`)
+- **Response `200 OK`**:
+  ```json
+  {
+    "status": "success",
+    "settings": {
+      "theme": "gold-silver",
+      "language": "en",
+      "communication": {
+        "email": true,
+        "sms": true,
+        "whatsapp": true
+      },
+      "account": {
+        "id": 1,
+        "username": "akil_sundaram",
+        "fullName": "Akil Sundaram",
+        "email": "akil.sundaram@aksmenstyle.com",
+        "phone": "+91-9840112345",
+        "address": "42 Poes Garden",
+        "city": "Chennai",
+        "state": "Tamil Nadu",
+        "pincode": "600086",
+        "role": "USER"
+      }
+    }
+  }
+  ```
+
+### PUT `/api/settings`
+Updates appearance theme (`gold-silver`, `midnight-silver`, `black-champagne`), interface language (`en`, `ta`), and notification preferences in SQLite.
+
+- **Auth Required**: Yes (`Bearer <TOKEN>`)
+- **Request Body**:
+  ```json
+  {
+    "theme": "midnight-silver",
+    "language": "ta",
+    "communication": {
+      "email": true,
+      "sms": false,
+      "whatsapp": true
+    }
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "status": "success",
+    "message": "Settings updated successfully.",
+    "settings": {
+      "theme": "midnight-silver",
+      "language": "ta",
+      "communication": {
+        "email": true,
+        "sms": false,
+        "whatsapp": true
+      }
+    }
+  }
+  ```
+
+### GET `/api/settings/notifications/history`
+Returns logged notification delivery attempts and statuses for purchases belonging strictly to the authenticated user.
+
+- **Auth Required**: Yes (`Bearer <TOKEN>`)
+- **Response `200 OK`**:
+  ```json
+  {
+    "status": "success",
+    "deliveries": [
+      {
+        "id": 12,
+        "purchase_id": 45,
+        "channel": "EMAIL",
+        "status": "NOT_CONFIGURED",
+        "recipient": "akil.sundaram@aksmenstyle.com",
+        "created_at": "2026-09-30 14:15:00",
+        "total_amount": 540,
+        "purchase_type": "SINGLE"
+      },
+      {
+        "id": 13,
+        "purchase_id": 45,
+        "channel": "SMS",
+        "status": "DISABLED",
+        "recipient": "+919840112345",
+        "created_at": "2026-09-30 14:15:00",
+        "total_amount": 540,
+        "purchase_type": "SINGLE"
+      },
+      {
+        "id": 14,
+        "purchase_id": 45,
+        "channel": "WHATSAPP",
+        "status": "NOT_CONFIGURED",
+        "recipient": "+919840112345",
+        "created_at": "2026-09-30 14:15:00",
+        "total_amount": 540,
+        "purchase_type": "SINGLE"
+      }
+    ]
+  }
+  ```
+
+---
+
+## 14. Purchase Notification Integration (`/api/purchases`)
+
+Both `/api/purchases/product` and `/api/purchases/combo` automatically dispatch asynchronous communication jobs after the SQLite database transaction commits. Notification status is returned in the response object without blocking or rolling back successful orders:
+
+```json
+{
+  "status": "success",
+  "message": "PURCHASE SUCCESSFUL",
+  "purchase": {
+    "id": 46,
+    "purchase_type": "SINGLE",
+    "total_amount": 540,
+    "delivery_name": "Akil Sundaram",
+    "delivery_phone": "+91-9840112345",
+    "delivery_address": "42 Poes Garden",
+    "delivery_city": "Chennai",
+    "delivery_state": "Tamil Nadu",
+    "delivery_pincode": "600086",
+    "created_at": "2026-09-30T08:45:00.000Z",
+    "items": [ ... ]
+  },
+  "notifications": {
+    "email": { "status": "NOT_CONFIGURED" },
+    "sms": { "status": "DISABLED" },
+    "whatsapp": { "status": "NOT_CONFIGURED" }
+  }
+}
+```
+

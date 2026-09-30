@@ -267,6 +267,17 @@ export function initDatabase() {
         accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, product_id)
       );
+      CREATE TABLE IF NOT EXISTS notification_deliveries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        purchase_id INTEGER NOT NULL REFERENCES purchases(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        channel TEXT NOT NULL CHECK(channel IN ('EMAIL', 'SMS', 'WHATSAPP')),
+        status TEXT NOT NULL CHECK(status IN ('PENDING', 'SENT', 'FAILED', 'NOT_CONFIGURED', 'DISABLED')),
+        recipient TEXT,
+        provider_message_id TEXT,
+        error_message TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     // Indexes requested
@@ -289,16 +300,39 @@ export function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_purchases_user_id ON purchases(user_id);
       CREATE INDEX IF NOT EXISTS idx_purchase_items_purchase_id ON purchase_items(purchase_id);
       CREATE INDEX IF NOT EXISTS idx_recently_accessed_user_date ON recently_accessed(user_id, accessed_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_notif_deliveries_purchase ON notification_deliveries(purchase_id);
+      CREATE INDEX IF NOT EXISTS idx_notif_deliveries_user ON notification_deliveries(user_id);
     `);
   });
 
   createSchema();
 
-  // Ensure users has role column (Phase 10 Admin Role migration)
+  // Ensure users has role and Google OAuth columns (migrations)
   try {
     const userCols = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
     if (!userCols.includes('role')) {
       db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'USER';");
+    }
+    if (!userCols.includes('google_id')) {
+      db.exec("ALTER TABLE users ADD COLUMN google_id TEXT;");
+    }
+    if (!userCols.includes('avatar_url')) {
+      db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT;");
+    }
+    if (!userCols.includes('email_notifications')) {
+      db.exec("ALTER TABLE users ADD COLUMN email_notifications INTEGER NOT NULL DEFAULT 1;");
+    }
+    if (!userCols.includes('sms_notifications')) {
+      db.exec("ALTER TABLE users ADD COLUMN sms_notifications INTEGER NOT NULL DEFAULT 1;");
+    }
+    if (!userCols.includes('whatsapp_notifications')) {
+      db.exec("ALTER TABLE users ADD COLUMN whatsapp_notifications INTEGER NOT NULL DEFAULT 1;");
+    }
+    if (!userCols.includes('theme_preference')) {
+      db.exec("ALTER TABLE users ADD COLUMN theme_preference TEXT NOT NULL DEFAULT 'gold-silver';");
+    }
+    if (!userCols.includes('language_preference')) {
+      db.exec("ALTER TABLE users ADD COLUMN language_preference TEXT NOT NULL DEFAULT 'en';");
     }
   } catch (e) {
     // Already present or handled

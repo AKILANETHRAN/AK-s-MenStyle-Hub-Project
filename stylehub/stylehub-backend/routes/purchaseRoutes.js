@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import db from '../config/database.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { dispatchPurchaseCommunications } from '../services/communicationService.js';
 
 const router = Router();
 
@@ -23,7 +24,7 @@ function validateDeliveryAddress(user) {
  * POST /api/purchases/product
  * Purchase a single product directly.
  */
-router.post('/product', authMiddleware, (req, res) => {
+router.post('/product', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const user = req.user;
@@ -113,6 +114,18 @@ router.post('/product', authMiddleware, (req, res) => {
 
     const purchaseId = executePurchase();
 
+    // 5. Asynchronous Communication Dispatch (Non-fatal, safe post-commit)
+    let notifications = {
+      email: { status: 'NOT_CONFIGURED' },
+      sms: { status: 'NOT_CONFIGURED' },
+      whatsapp: { status: 'NOT_CONFIGURED' }
+    };
+    try {
+      notifications = await dispatchPurchaseCommunications(purchaseId, userId);
+    } catch (notifErr) {
+      console.error('[COMMUNICATION] Post-purchase dispatch error (non-fatal):', notifErr.message);
+    }
+
     return res.status(201).json({
       status: 'success',
       message: 'PURCHASE SUCCESSFUL',
@@ -138,7 +151,8 @@ router.post('/product', authMiddleware, (req, res) => {
             line_total: totalAmount
           }
         ]
-      }
+      },
+      notifications
     });
   } catch (err) {
     console.error('Error processing single product purchase:', err);
@@ -150,7 +164,7 @@ router.post('/product', authMiddleware, (req, res) => {
  * POST /api/purchases/combo
  * Purchase a recommended outfit combo directly.
  */
-router.post('/combo', authMiddleware, (req, res) => {
+router.post('/combo', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const user = req.user;
@@ -279,6 +293,18 @@ router.post('/combo', authMiddleware, (req, res) => {
 
     const purchaseId = executeComboPurchase();
 
+    // 4. Asynchronous Communication Dispatch (Non-fatal, safe post-commit)
+    let notifications = {
+      email: { status: 'NOT_CONFIGURED' },
+      sms: { status: 'NOT_CONFIGURED' },
+      whatsapp: { status: 'NOT_CONFIGURED' }
+    };
+    try {
+      notifications = await dispatchPurchaseCommunications(purchaseId, userId);
+    } catch (notifErr) {
+      console.error('[COMMUNICATION] Post-combo dispatch error (non-fatal):', notifErr.message);
+    }
+
     return res.status(201).json({
       status: 'success',
       message: 'PURCHASE SUCCESSFUL',
@@ -302,7 +328,8 @@ router.post('/combo', authMiddleware, (req, res) => {
           unit_price: it.unitPrice,
           line_total: it.lineTotal
         }))
-      }
+      },
+      notifications
     });
   } catch (err) {
     console.error('Error processing combo purchase:', err);

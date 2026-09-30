@@ -17,6 +17,7 @@ import recommendationRoutes from './routes/recommendationRoutes.js';
 import recentlyAccessedRoutes from './routes/recentlyAccessedRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 
 dotenv.config();
 
@@ -92,6 +93,9 @@ app.use('/api/admin', adminRoutes);
 
 // Chatbot Assistant Routes (Phase 10)
 app.use('/api/chatbot', chatbotRoutes);
+
+// Settings & Preferences Routes (Phase 11)
+app.use('/api/settings', settingsRoutes);
 
 // Error Handling Middleware
 app.use(notFoundHandler);

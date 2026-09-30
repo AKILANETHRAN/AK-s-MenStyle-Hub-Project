@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/verify-db.js && node test/auth-test.js && node test-products.js && node test/cart-wishlist-test.js && node test/phase6-e2e-verification.js && node test/phase7-friends-test.js && node test/phase7-persistence-test.js && node test/phase8-purchase-recommendation-test.js && node test/e2e-social-workflow-test.js && node test/test-friends-browser-e2e.js && node test/final-verification-test.js && node test/test-login-home-browser-e2e.js && node test/test-reaction-feedback-e2e.js && node test/phase10-compliance-test.js && node test/phase10-browser-e2e.js"
+    "test": "node test/verify-db.js && node test/auth-test.js && node test-products.js && node test/cart-wishlist-test.js && node test/phase6-e2e-verification.js && node test/phase7-friends-test.js && node test/phase7-persistence-test.js && node test/phase8-purchase-recommendation-test.js && node test/e2e-social-workflow-test.js && node test/test-friends-browser-e2e.js && node test/final-verification-test.js && node test/test-login-home-browser-e2e.js && node test/test-reaction-feedback-e2e.js && node test/phase10-compliance-test.js && node test/phase10-browser-e2e.js && node test/google-auth-test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -16,6 +16,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
-    "multer": "^2.4.0"
+    "multer": "^2.4.0",
+    "nodemailer": "^10.0.13",
+    "twilio": "^6.1.2"
   }
 }
