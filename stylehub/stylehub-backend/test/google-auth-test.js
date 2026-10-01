@@ -5,6 +5,7 @@ import { getJwtSecret } from '../config/jwt.js';
 
 const BASE = 'http://localhost:5000/api';
 const EXPECTED_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const EXPECTED_REDIRECT_URI = process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5173/auth/google/callback';
 
 let passed = 0;
 function check(condition, message) {
@@ -25,14 +26,14 @@ async function runGoogleAuthTests() {
   check(configRes.status === 200, '1. GET /api/auth/google/config returns 200 OK');
   check(configData.clientId === EXPECTED_CLIENT_ID, '2. Configured Client ID matches provided Google Client ID');
   check(configData.configured === true, '3. Google OAuth status is configured = true');
-  check(configData.redirectUri === 'http://localhost:5000/api/auth/google/callback', '4. Configured redirectUri matches canonical http://localhost:5000/api/auth/google/callback');
+  check(configData.redirectUri === EXPECTED_REDIRECT_URI, `4. Configured redirectUri matches ${EXPECTED_REDIRECT_URI}`);
 
   // Test 2: Google OAuth Authorization URL Generation
   console.log('\n--- Test 2: Google Authorization Consent URL Generation ---');
   const canonicalUrlRes = await fetch(`${BASE}/auth/google/url`);
   const canonicalUrlData = await canonicalUrlRes.json();
   check(canonicalUrlRes.status === 200, '5. GET /api/auth/google/url returns 200 OK');
-  check(canonicalUrlData.url.includes(encodeURIComponent('http://localhost:5000/api/auth/google/callback')), '6. Default authorization URL uses canonical backend callback');
+  check(canonicalUrlData.url.includes(encodeURIComponent(EXPECTED_REDIRECT_URI)), '6. Default authorization URL uses canonical callback');
   check(Boolean(canonicalUrlData.state), '7. Authorization URL includes secure state parameter for CSRF protection');
 
   // Test 2b: Direct GET /api/auth/google initiation
@@ -41,7 +42,7 @@ async function runGoogleAuthTests() {
   check(directAuthRes.status === 302, '8. GET /api/auth/google returns 302 Redirect');
   const targetLocation = directAuthRes.headers.get('location') || '';
   check(targetLocation.startsWith('https://accounts.google.com/o/oauth2/v2/auth'), '9. Location header targets Google OAuth');
-  check(targetLocation.includes(encodeURIComponent('http://localhost:5000/api/auth/google/callback')), '10. Direct initiation uses canonical redirect URI');
+  check(targetLocation.includes(encodeURIComponent(EXPECTED_REDIRECT_URI)), '10. Direct initiation uses canonical redirect URI');
 
   // Test 3: Validation on missing credentials
   console.log('\n--- Test 3: Request Validation ---');
