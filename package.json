@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node run-stylehub.js",
+    "start": "node run-stylehub.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.21.0"
+  }
+}

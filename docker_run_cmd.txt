@@ -1,0 +1,5 @@
+Set-Location 'D:\PROJECT\AK_MEN_STYLE_FULL_PROJECT'
+
+# SQLite-only deployment (MongoDB disabled via docker-compose.yml)
+docker compose build backend frontend
+docker compose up -d backend frontend

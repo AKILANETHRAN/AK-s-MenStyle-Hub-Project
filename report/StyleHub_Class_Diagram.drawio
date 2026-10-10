@@ -1,0 +1,233 @@
+<mxfile host="Electron" agent="StyleHub report">
+  <diagram id="class-a4" name="Class Diagram A4">
+    <mxGraphModel dx="1112" dy="889" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="794" pageHeight="1123" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="User" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="70" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="User-header" parent="User" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="User" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="User-attributes" parent="User" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+username: Text&lt;br&gt;+email: Text&lt;br&gt;+role: Text" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="User-methods" parent="User" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+register()&lt;br&gt;+login()&lt;br&gt;+updateProfile()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="Product" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="424" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Product-header" parent="Product" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="Product" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="Product-attributes" parent="Product" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+name: Text&lt;br&gt;+category: Text&lt;br&gt;+price: Real&lt;br&gt;+stock: Integer" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="Product-methods" parent="Product" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+getAllProducts()&lt;br&gt;+getProductById()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="Cart" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="70" y="259" as="geometry" />
+        </mxCell>
+        <mxCell id="Cart-header" parent="Cart" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="Cart" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="Cart-attributes" parent="Cart" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+userId: Integer" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="Cart-methods" parent="Cart" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+getCart()&lt;br&gt;+addToCart()&lt;br&gt;+clearCart()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="CartItem" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="424" y="259" as="geometry" />
+        </mxCell>
+        <mxCell id="CartItem-header" parent="CartItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="CartItem" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="CartItem-attributes" parent="CartItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+productId: Integer&lt;br&gt;+size: Text&lt;br&gt;+quantity: Integer" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="CartItem-methods" parent="CartItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+updateCartItemQuantity()&lt;br&gt;+removeCartItem()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="Wishlist" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="70" y="428" as="geometry" />
+        </mxCell>
+        <mxCell id="Wishlist-header" parent="Wishlist" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="Wishlist" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="Wishlist-attributes" parent="Wishlist" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+userId: Integer" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="Wishlist-methods" parent="Wishlist" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+getWishlist()&lt;br&gt;+addToWishlist()&lt;br&gt;+clearWishlist()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistItem" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="424" y="428" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistItem-header" parent="WishlistItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="WishlistItem" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistItem-attributes" parent="WishlistItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+productId: Integer" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistItem-methods" parent="WishlistItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+removeWishlistItem()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="Purchase" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="70" y="597" as="geometry" />
+        </mxCell>
+        <mxCell id="Purchase-header" parent="Purchase" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="Purchase" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="Purchase-attributes" parent="Purchase" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+userId: Integer&lt;br&gt;+purchaseType: Text&lt;br&gt;+totalAmount: Real" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="Purchase-methods" parent="Purchase" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+purchaseProduct()&lt;br&gt;+purchaseCombo()&lt;br&gt;+purchaseCart()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="PurchaseItem" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="424" y="597" as="geometry" />
+        </mxCell>
+        <mxCell id="PurchaseItem-header" parent="PurchaseItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="PurchaseItem" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="PurchaseItem-attributes" parent="PurchaseItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+productId: Integer&lt;br&gt;+size: Text&lt;br&gt;+quantity: Integer" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="PurchaseItem-methods" parent="PurchaseItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+recordItem()&lt;br&gt;+validateQuantity()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="Friendship" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="70" y="766" as="geometry" />
+        </mxCell>
+        <mxCell id="Friendship-header" parent="Friendship" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="Friendship" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="Friendship-attributes" parent="Friendship" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+requesterId: Integer&lt;br&gt;+receiverId: Integer&lt;br&gt;+status: Text" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="Friendship-methods" parent="Friendship" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+sendFriendRequest()&lt;br&gt;+acceptFriendRequest()&lt;br&gt;+rejectFriendRequest()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistShare" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="424" y="766" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistShare-header" parent="WishlistShare" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="WishlistShare" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistShare-attributes" parent="WishlistShare" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+senderId: Integer&lt;br&gt;+receiverId: Integer" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="WishlistShare-methods" parent="WishlistShare" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+createWishlistShare()&lt;br&gt;+getWishlistShareById()&lt;br&gt;+addShareFeedback()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="TryOnResult" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="70" y="935" as="geometry" />
+        </mxCell>
+        <mxCell id="TryOnResult-header" parent="TryOnResult" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="TryOnResult" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="TryOnResult-attributes" parent="TryOnResult" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+id: Integer&lt;br&gt;+userId: Integer&lt;br&gt;+productId: Integer&lt;br&gt;+status: Text" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="TryOnResult-methods" parent="TryOnResult" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+generateTryOn()&lt;br&gt;+getHistory()&lt;br&gt;+getResult()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="RecommendationEngine" parent="1" style="group;container=1;collapsible=0;fontSize=14;" value="" vertex="1">
+          <mxGeometry height="145" width="300" x="424" y="935" as="geometry" />
+        </mxCell>
+        <mxCell id="RecommendationEngine-header" parent="RecommendationEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="RecommendationEngine" vertex="1">
+          <mxGeometry height="27" width="300" as="geometry" />
+        </mxCell>
+        <mxCell id="RecommendationEngine-attributes" parent="RecommendationEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="-rules: MatchingRules" vertex="1">
+          <mxGeometry height="68" width="300" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="RecommendationEngine-methods" parent="RecommendationEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;align=left;verticalAlign=middle;spacingLeft=8;" value="+isEligibleForRecommendation()&lt;br&gt;+getRecommendationsForProduct()" vertex="1">
+          <mxGeometry height="50" width="300" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1" edge="1" parent="1" source="User" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="Cart" value="1 : 1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2" edge="1" parent="1" source="Product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="CartItem" value="1 : many">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3" edge="1" parent="1" source="Cart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="CartItem" value="1 : many">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4" edge="1" parent="1" source="Wishlist" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="WishlistItem" value="1 : many">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5" edge="1" parent="1" source="Purchase" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="PurchaseItem" value="1 : many">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-6" edge="1" parent="1" source="Friendship" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="WishlistShare" value="permits sharing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-7" edge="1" parent="1" source="User" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="Wishlist" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="52" y="162" />
+              <mxPoint x="52" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-8" edge="1" parent="1" source="User" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="Purchase" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="42" y="162" />
+              <mxPoint x="42" y="669" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-9" edge="1" parent="1" source="User" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="Friendship" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="32" y="162" />
+              <mxPoint x="32" y="838" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-10" edge="1" parent="1" source="User" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="TryOnResult" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="22" y="162" />
+              <mxPoint x="22" y="1007" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-11" edge="1" parent="1" source="Product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="WishlistItem" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="742" y="162" />
+              <mxPoint x="742" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ymxn7uc7PZd7eWplxWmh-1" connectable="0" parent="edge-11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Text" vertex="1">
+          <mxGeometry relative="1" x="0.5437" y="-5" as="geometry">
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-12" edge="1" parent="1" source="Product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="PurchaseItem" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="752" y="162" />
+              <mxPoint x="752" y="669" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-13" edge="1" parent="1" source="Product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=14;labelBackgroundColor=#FFFFFF;" target="RecommendationEngine" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="762" y="162" />
+              <mxPoint x="762" y="1007" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

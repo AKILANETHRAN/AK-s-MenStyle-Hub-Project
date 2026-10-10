@@ -1,0 +1,8 @@
+{
+  "name": "stylehub-frontend-merged",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix \"../stylehub/stylehub-frontend\" run dev",
+    "build": "npm --prefix \"../stylehub/stylehub-frontend\" run build"
+  }
+}

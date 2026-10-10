@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+package-lock.json.bak
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+*.local
+
+# SQLite Temp Files
+*.sqlite-wal
+*.sqlite-shm
+*.db-wal
+*.db-shm
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Python / VTON
+venv/
+.venv/
+__pycache__/
+*.pyc
+weights/
+**/vton-service/venv
+**/vton-service/weights
+
+# Logs & Temp
+*.log
+temp/
+tmp/
+scratch/
