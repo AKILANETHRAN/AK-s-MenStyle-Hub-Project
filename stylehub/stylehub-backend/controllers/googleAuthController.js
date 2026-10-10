@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import db from '../config/database.js';
 import { getJwtSecret } from '../config/jwt.js';
+import { getFrontendOrigin } from '../config/frontendUrl.js';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
@@ -162,7 +163,13 @@ export async function findOrCreateGoogleUser(googleProfile) {
  */
 export async function handleGoogleCallback(req, res) {
   const { code, state, error, error_description } = req.query;
-  const frontendHost = process.env.FRONTEND_URL || 'http://localhost:5173';
+  let frontendHost;
+  try {
+    frontendHost = getFrontendOrigin();
+  } catch (err) {
+    console.error('Invalid frontend OAuth redirect configuration:', err.message);
+    return res.status(500).json({ status: 'error', message: 'Google sign-in is unavailable: FRONTEND_URL must be a valid frontend origin.' });
+  }
 
   if (error) {
     const message = error_description || error;
