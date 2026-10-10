@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import db from '../config/database.js';
 import { getJwtSecret } from '../config/jwt.js';
 
-export function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -25,11 +25,11 @@ export function authMiddleware(req, res, next) {
       });
     }
 
-    const user = db.prepare(`
+    const user = (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, COALESCE(role, 'USER') AS role, phone, age, address, city, state, pincode, created_at, updated_at
       FROM users
       WHERE id = ?
-    `).get(decoded.userId);
+    `).get(decoded.userId));
 
     if (!user) {
       return res.status(401).json({
@@ -53,10 +53,10 @@ export function authMiddleware(req, res, next) {
  * Admin authorization middleware (Phase 10)
  * Validates token, attaches user, and strictly queries database for ADMIN role.
  */
-export function requireAdmin(req, res, next) {
-  authMiddleware(req, res, () => {
+export async function requireAdmin(req, res, next) {
+  (await authMiddleware(req, res, async () => {
     try {
-      const user = db.prepare("SELECT COALESCE(role, 'USER') AS role FROM users WHERE id = ?").get(req.userId);
+      const user = (await db.prepare("SELECT COALESCE(role, 'USER') AS role FROM users WHERE id = ?").get(req.userId));
       if (!user || user.role !== 'ADMIN') {
         return res.status(403).json({
           status: 'error',
@@ -71,5 +71,5 @@ export function requireAdmin(req, res, next) {
         message: 'Authorization check failed due to server error.'
       });
     }
-  });
+  }));
 }

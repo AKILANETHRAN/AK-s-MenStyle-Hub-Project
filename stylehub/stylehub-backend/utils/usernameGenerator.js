@@ -1,6 +1,6 @@
 /**
  * Generates a readable, unique username from an email address.
- * 
+ *
  * Rules:
  * 1. Use the alphabetic portion of the email local-part.
  * 2. Ignore trailing numbers and separators (., _, -).
@@ -8,11 +8,11 @@
  * 4. Check uniqueness case-insensitively in the database.
  * 5. If taken, append incrementing integer (e.g. Akil, Akil2, Akil3).
  *
- * @param {string} email 
- * @param {object} db - better-sqlite3 database instance
+ * @param {string} email
+ * @param {object} db - PostgreSQL database adapter
  * @returns {string} Unique username
  */
-export function generateUsername(email, db) {
+export async function generateUsername(email, db) {
   if (!email || typeof email !== 'string') {
     return 'User';
   }
@@ -37,12 +37,12 @@ export function generateUsername(email, db) {
   const baseUsername = alpha.charAt(0).toUpperCase() + alpha.slice(1).toLowerCase();
 
   // Check database uniqueness case-insensitively
-  const checkStmt = db.prepare('SELECT 1 FROM users WHERE username = ? COLLATE NOCASE');
+  const checkStmt = db.prepare("SELECT 1 FROM users WHERE LOWER(username) = LOWER(?)");
 
   let candidate = baseUsername;
   let suffix = 2;
 
-  while (checkStmt.get(candidate)) {
+  while ((await checkStmt.get(candidate))) {
     candidate = `${baseUsername}${suffix}`;
     suffix++;
   }

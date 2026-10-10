@@ -9,7 +9,7 @@ import { parsePagination, paginationMeta } from '../utils/pagination.js';
  * GET /api/products
  * Query params: category, color, cloth_type, brand, price, minPrice, maxPrice, stock, stockStatus, discount_percent, minDiscount, search, sort
  */
-export function getAllProducts(req, res) {
+export async function getAllProducts(req, res) {
   try {
     const pagination = parsePagination(req.query, 12);
     if (pagination?.error) return res.status(400).json({ status: 'error', message: pagination.error });
@@ -30,7 +30,7 @@ export function getAllProducts(req, res) {
     } = req.query;
 
     let query = `
-      SELECT 
+      SELECT
         id, name, description, brand, category, cloth_type, color,
         price, original_price, discount_percent, stock, status,
         image, garment_image, vton_supported, vton_garment_category,
@@ -48,19 +48,19 @@ export function getAllProducts(req, res) {
 
     // Filter by color
     if (color) {
-      query += ` AND LOWER(color) LIKE LOWER(?)`;
+      query += ` AND LOWER(color) ILIKE LOWER(?)`;
       params.push(`%${color.trim()}%`);
     }
 
     // Filter by cloth_type
     if (cloth_type) {
-      query += ` AND LOWER(cloth_type) LIKE LOWER(?)`;
+      query += ` AND LOWER(cloth_type) ILIKE LOWER(?)`;
       params.push(`%${cloth_type.trim()}%`);
     }
 
     // Filter by brand
     if (brand) {
-      query += ` AND LOWER(brand) LIKE LOWER(?)`;
+      query += ` AND LOWER(brand) ILIKE LOWER(?)`;
       params.push(`%${brand.trim()}%`);
     }
 
@@ -107,12 +107,12 @@ export function getAllProducts(req, res) {
     if (search && typeof search === 'string' && search.trim()) {
       const searchTerm = `%${search.trim()}%`;
       query += ` AND (
-        name LIKE ? OR 
-        description LIKE ? OR 
-        brand LIKE ? OR 
-        color LIKE ? OR
-        cloth_type LIKE ? OR
-        category LIKE ?
+        name ILIKE ? OR
+        description ILIKE ? OR
+        brand ILIKE ? OR
+        color ILIKE ? OR
+        cloth_type ILIKE ? OR
+        category ILIKE ?
       )`;
       params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
     }
@@ -140,7 +140,7 @@ export function getAllProducts(req, res) {
 
     let total;
     if (pagination) {
-      total = db.prepare(countQuery).get(...params).total;
+      total = (await db.prepare(countQuery).get(...params)).total;
       query += ' LIMIT ? OFFSET ?';
       params.push(pagination.pageSize, pagination.offset);
     } else if (req.query.limit !== undefined) {
@@ -152,7 +152,7 @@ export function getAllProducts(req, res) {
       params.push(limit);
     }
 
-    const products = db.prepare(query).all(...params);
+    const products = (await db.prepare(query).all(...params));
     const enrichedProducts = products.map(p => ({
       ...p,
       sizes: getProductSizes(p)
@@ -170,7 +170,7 @@ export function getAllProducts(req, res) {
  * Get single product by ID
  * GET /api/products/:id
  */
-export function getProductById(req, res) {
+export async function getProductById(req, res) {
   try {
     const productId = parseInt(req.params.id, 10);
 
@@ -178,15 +178,15 @@ export function getProductById(req, res) {
       return res.status(404).json({ status: 'error', message: 'Invalid product ID.' });
     }
 
-    const product = db.prepare(`
-      SELECT 
+    const product = (await db.prepare(`
+      SELECT
         id, name, description, brand, category, cloth_type, color,
         price, original_price, discount_percent, stock, status,
         image, garment_image, vton_supported, vton_garment_category,
         created_at, updated_at
       FROM products
       WHERE id = ?
-    `).get(productId);
+    `).get(productId));
 
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found.' });
@@ -201,12 +201,12 @@ export function getProductById(req, res) {
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, getJwtSecret());
         if (decoded && decoded.userId) {
-          db.prepare(`
+          (await db.prepare(`
             INSERT INTO recently_accessed (user_id, product_id, accessed_at)
             VALUES (?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(user_id, product_id)
             DO UPDATE SET accessed_at = CURRENT_TIMESTAMP
-          `).run(decoded.userId, productId);
+          `).run(decoded.userId, productId));
         }
       } catch (e) {
         // Silently continue for optional auth

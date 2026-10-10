@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { getAllProducts, getProductById } from '../controllers/productController.js';
 
 const router = Router();

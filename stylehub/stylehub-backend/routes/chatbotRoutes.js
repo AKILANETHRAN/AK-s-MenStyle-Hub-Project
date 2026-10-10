@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { handleChatMessage } from '../controllers/chatbotController.js';
 
 const router = Router();

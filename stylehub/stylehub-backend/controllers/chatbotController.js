@@ -6,7 +6,7 @@ import { CART_REWARD_TIERS } from '../services/cartRewardService.js';
  * POST /api/chatbot/message
  * Body: { message: string }
  */
-export function handleChatMessage(req, res) {
+export async function handleChatMessage(req, res) {
   try {
     const rawMessage = (req.body.message || '').trim();
     if (!rawMessage) {
@@ -23,8 +23,8 @@ export function handleChatMessage(req, res) {
       lower.includes('try clothes') ||
       lower.includes('how does virtual')
     ) {
-      const vtonTopsCount = db.prepare("SELECT COUNT(*) AS count FROM products WHERE vton_supported = 1 AND vton_garment_category = 'tops'").get().count;
-      const vtonBottomsCount = db.prepare("SELECT COUNT(*) AS count FROM products WHERE vton_supported = 1 AND vton_garment_category = 'bottoms'").get().count;
+      const vtonTopsCount = (await db.prepare("SELECT COUNT(*) AS count FROM products WHERE vton_supported = 1 AND vton_garment_category = 'tops'").get()).count;
+      const vtonBottomsCount = (await db.prepare("SELECT COUNT(*) AS count FROM products WHERE vton_supported = 1 AND vton_garment_category = 'bottoms'").get()).count;
 
       return res.status(200).json({
         status: 'success',
@@ -50,22 +50,22 @@ export function handleChatMessage(req, res) {
       // Find matching base items if mentioned
       let sampleProduct = null;
       if (lower.includes('white') || lower.includes('shirt')) {
-        sampleProduct = db.prepare("SELECT * FROM products WHERE (category = 'Shirts' OR cloth_type = 'Top') AND stock > 0 ORDER BY id ASC LIMIT 1").get();
+        sampleProduct = (await db.prepare("SELECT * FROM products WHERE (category = 'Shirts' OR cloth_type = 'Top') AND stock > 0 ORDER BY id ASC LIMIT 1").get());
       } else if (lower.includes('pant') || lower.includes('trouser')) {
-        sampleProduct = db.prepare("SELECT * FROM products WHERE category = 'Pants' AND stock > 0 ORDER BY id ASC LIMIT 1").get();
+        sampleProduct = (await db.prepare("SELECT * FROM products WHERE category = 'Pants' AND stock > 0 ORDER BY id ASC LIMIT 1").get());
       } else {
-        sampleProduct = db.prepare("SELECT * FROM products WHERE vton_supported = 1 AND stock > 0 ORDER BY id ASC LIMIT 1").get();
+        sampleProduct = (await db.prepare("SELECT * FROM products WHERE vton_supported = 1 AND stock > 0 ORDER BY id ASC LIMIT 1").get());
       }
 
       let complementaryProducts = [];
       if (sampleProduct) {
-        complementaryProducts = db.prepare(`
+        complementaryProducts = (await db.prepare(`
           SELECT p.id, p.name, p.brand, p.category, p.price, p.discount_percent, p.image, rec.slot_type, rec.reason
           FROM outfit_recommendations rec
           JOIN products p ON rec.recommended_product_id = p.id
           WHERE rec.base_product_id = ? AND p.stock > 0
           LIMIT 3
-        `).all(sampleProduct.id);
+        `).all(sampleProduct.id));
       }
 
       return res.status(200).json({
@@ -157,8 +157,8 @@ export function handleChatMessage(req, res) {
       lower.includes('stock') ||
       lower.includes('available')
     ) {
-      const inStockCount = db.prepare("SELECT COUNT(*) AS count FROM products WHERE stock > 0 AND status = 'IN_STOCK'").get().count;
-      const featured = db.prepare("SELECT id, name, brand, category, price, discount_percent, stock, image FROM products WHERE stock > 0 ORDER BY stock DESC LIMIT 3").all();
+      const inStockCount = (await db.prepare("SELECT COUNT(*) AS count FROM products WHERE stock > 0 AND status = 'IN_STOCK'").get()).count;
+      const featured = (await db.prepare("SELECT id, name, brand, category, price, discount_percent, stock, image FROM products WHERE stock > 0 ORDER BY stock DESC LIMIT 3").all());
 
       return res.status(200).json({
         status: 'success',
@@ -193,13 +193,13 @@ export function handleChatMessage(req, res) {
 
     const matchedCat = categoryKeywords.find(c => lower.includes(c.key));
     if (matchedCat) {
-      const prods = db.prepare(`
+      const prods = (await db.prepare(`
         SELECT id, name, brand, category, price, discount_percent, stock, image
         FROM products
-        WHERE (LOWER(category) = LOWER(?) OR LOWER(cloth_type) LIKE LOWER(?)) AND stock > 0
+        WHERE (LOWER(category) = LOWER(?) OR LOWER(cloth_type) ILIKE LOWER(?)) AND stock > 0
         ORDER BY id ASC
         LIMIT 4
-      `).all(matchedCat.category, `%${matchedCat.key}%`);
+      `).all(matchedCat.category, `%${matchedCat.key}%`));
 
       if (prods.length > 0) {
         return res.status(200).json({

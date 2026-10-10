@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { getRecentlyAccessed, recordRecentlyAccessed } from '../controllers/recentlyAccessedController.js';
 

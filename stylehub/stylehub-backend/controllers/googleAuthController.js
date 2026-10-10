@@ -40,7 +40,7 @@ export function verifyOAuthState(state) {
   const payload = `${timestamp}.${randomBytes}`;
   const expectedSig = crypto.createHmac('sha256', getJwtSecret()).update(payload).digest('hex');
   if (signature !== expectedSig) return false;
-  
+
   // Check state expiration (15 minutes)
   const age = Date.now() - parseInt(timestamp, 10);
   if (isNaN(age) || age < 0 || age > 15 * 60 * 1000) return false;
@@ -103,30 +103,30 @@ export function initiateGoogleAuth(req, res) {
 }
 
 /**
- * Find or Create local user in SQLite database
+ * Find or Create local user in PostgreSQL database
  */
 export async function findOrCreateGoogleUser(googleProfile) {
-  let user = db.prepare(`
+  let user = (await db.prepare(`
     SELECT id, username, full_name AS fullName, email, role, google_id, avatar_url
     FROM users
     WHERE google_id = ? OR LOWER(email) = ?
-  `).get(googleProfile.googleId, googleProfile.email);
+  `).get(googleProfile.googleId, googleProfile.email));
 
   if (user) {
     // User exists — update Google ID & avatar if missing
-    db.prepare(`
+    (await db.prepare(`
       UPDATE users
       SET google_id = COALESCE(google_id, ?),
           avatar_url = COALESCE(avatar_url, ?),
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(googleProfile.googleId, googleProfile.avatarUrl, user.id);
+    `).run(googleProfile.googleId, googleProfile.avatarUrl, user.id));
 
-    return db.prepare(`
+    return (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, COALESCE(role, 'USER') AS role, avatar_url
       FROM users
       WHERE id = ?
-    `).get(user.id);
+    `).get(user.id));
   } else {
     // New user — create account with role USER (Admin is never assigned to Google users)
     // Requirement: Usernames must NO LONGER be auto-generated from email; user explicitly chooses at /set-username
@@ -134,7 +134,7 @@ export async function findOrCreateGoogleUser(googleProfile) {
     const randomPassword = crypto.randomUUID() + '!GoogleOAuth2026';
     const passwordHash = await bcrypt.hash(randomPassword, salt);
 
-    const insertResult = db.prepare(`
+    const insertResult = (await db.prepare(`
       INSERT INTO users (
         username, full_name, email, password_hash, role, google_id, avatar_url
       ) VALUES (NULL, ?, ?, ?, 'USER', ?, ?)
@@ -144,7 +144,7 @@ export async function findOrCreateGoogleUser(googleProfile) {
       passwordHash,
       googleProfile.googleId,
       googleProfile.avatarUrl
-    );
+    ));
 
     return {
       id: insertResult.lastInsertRowid,
@@ -235,7 +235,7 @@ export async function handleGoogleCallback(req, res) {
       avatarUrl: userInfo.picture || null
     };
 
-    // Find or create user in SQLite
+    // Find or create user in PostgreSQL
     const user = await findOrCreateGoogleUser(googleProfile);
 
     // Generate standard local AK'S MEN STYLE JWT
@@ -324,7 +324,7 @@ export async function googleAuth(req, res) {
       }
 
       const tokenData = await tokenRes.json();
-      
+
       // Fetch user profile using access token
       const userinfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` }
@@ -359,7 +359,7 @@ export async function googleAuth(req, res) {
       });
     }
 
-    // Find or create local SQLite user
+    // Find or create local PostgreSQL user
     const user = await findOrCreateGoogleUser(googleProfile);
 
     // Issue local JWT token

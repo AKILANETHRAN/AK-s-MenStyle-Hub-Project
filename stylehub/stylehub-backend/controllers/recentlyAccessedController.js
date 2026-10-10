@@ -5,15 +5,15 @@ import db from '../config/database.js';
  * Returns the authenticated user's recently viewed products (latest first, limit 12)
  * Strictly isolated to req.userId
  */
-export function getRecentlyAccessed(req, res) {
+export async function getRecentlyAccessed(req, res) {
   try {
     const userId = req.userId;
     if (!userId) {
       return res.status(401).json({ status: 'error', message: 'Authentication required.' });
     }
 
-    const products = db.prepare(`
-      SELECT 
+    const products = (await db.prepare(`
+      SELECT
         p.id,
         p.name,
         p.brand,
@@ -33,7 +33,7 @@ export function getRecentlyAccessed(req, res) {
       WHERE ra.user_id = ?
       ORDER BY ra.accessed_at DESC
       LIMIT 12
-    `).all(userId);
+    `).all(userId));
 
     return res.status(200).json({
       status: 'success',
@@ -51,7 +51,7 @@ export function getRecentlyAccessed(req, res) {
  * Records a viewed product for the authenticated user with upsert behavior
  * Body: { productId }
  */
-export function recordRecentlyAccessed(req, res) {
+export async function recordRecentlyAccessed(req, res) {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -64,19 +64,19 @@ export function recordRecentlyAccessed(req, res) {
     }
 
     // Verify product exists in catalog
-    const product = db.prepare('SELECT id, name FROM products WHERE id = ?').get(productId);
+    const product = (await db.prepare('SELECT id, name FROM products WHERE id = ?').get(productId));
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product does not exist in catalog.' });
     }
 
     const nowIso = new Date().toISOString();
     // Safe upsert updating accessed_at to current ISO timestamp
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO recently_accessed (user_id, product_id, accessed_at)
       VALUES (?, ?, ?)
       ON CONFLICT(user_id, product_id)
       DO UPDATE SET accessed_at = excluded.accessed_at
-    `).run(userId, productId, nowIso);
+    `).run(userId, productId, nowIso));
 
     return res.status(200).json({
       status: 'success',

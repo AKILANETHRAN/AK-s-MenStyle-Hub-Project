@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { getSettings, updateSettings, getNotificationHistory } from '../controllers/settingsController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 

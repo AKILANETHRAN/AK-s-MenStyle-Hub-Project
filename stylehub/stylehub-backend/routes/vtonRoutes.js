@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -9,7 +9,7 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const router = express.Router();
+const router = Router();
 
 // Configure multer memory storage
 const storage = multer.memoryStorage();
@@ -55,16 +55,16 @@ router.get('/status', async (req, res) => {
  * GET /api/vton/history
  * Retrieve user's past virtual try-on results
  */
-router.get('/history', authMiddleware, (req, res) => {
+router.get('/history', authMiddleware, async (req, res) => {
   try {
-    const results = db.prepare(`
+    const results = (await db.prepare(`
       SELECT r.*, p.name AS product_name, p.brand AS product_brand, p.category AS product_category
       FROM try_on_results r
       JOIN products p ON r.product_id = p.id
       WHERE r.user_id = ?
       ORDER BY r.id DESC
       LIMIT 20
-    `).all(req.userId);
+    `).all(req.userId));
 
     return res.status(200).json({
       success: true,
@@ -79,12 +79,12 @@ router.get('/history', authMiddleware, (req, res) => {
  * GET /api/vton/results/:id
  * Retrieve a specific try-on result with strict user ownership isolation
  */
-router.get('/results/:id', authMiddleware, (req, res) => {
+router.get('/results/:id', authMiddleware, async (req, res) => {
   try {
     const resultId = parseInt(req.params.id, 10);
-    const result = db.prepare(`
+    const result = (await db.prepare(`
       SELECT * FROM try_on_results WHERE id = ?
-    `).get(resultId);
+    `).get(resultId));
 
     if (!result) {
       return res.status(404).json({ error: 'Try-on result not found.' });
@@ -121,10 +121,10 @@ router.post('/try-on', authMiddleware, upload.single('user_photo'), async (req, 
       return res.status(400).json({ error: 'Selected product could not be found.' });
     }
 
-    // 2. Fetch and Validate Product from SQLite
-    const product = db.prepare(`
+    // 2. Fetch and Validate Product from PostgreSQL
+    const product = (await db.prepare(`
       SELECT * FROM products WHERE id = ?
-    `).get(productId);
+    `).get(productId));
 
     if (!product) {
       return res.status(404).json({ error: 'Selected product could not be found.' });
@@ -226,7 +226,7 @@ router.post('/try-on', authMiddleware, upload.single('user_photo'), async (req, 
 
     const resultRelUrl = `/images/try-on/${resultFilename}`;
 
-    // 8. Persist to SQLite try_on_results
+    // 8. Persist to PostgreSQL try_on_results
     const insertStmt = db.prepare(`
       INSERT INTO try_on_results (
         user_id, product_id, user_image_path, garment_image_path,
@@ -234,14 +234,14 @@ router.post('/try-on', authMiddleware, upload.single('user_photo'), async (req, 
       ) VALUES (?, ?, ?, ?, ?, ?, 'COMPLETED')
     `);
 
-    const insertResult = insertStmt.run(
+    const insertResult = (await insertStmt.run(
       req.userId,
       product.id,
       `user_upload_${timestamp}`,
       product.garment_image,
       resultRelUrl,
       category
-    );
+    ));
 
     return res.status(200).json({
       success: true,

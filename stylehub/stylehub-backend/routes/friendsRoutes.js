@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   getFriends,
@@ -10,7 +10,7 @@ import {
   removeFriend
 } from '../controllers/friendsController.js';
 
-const router = express.Router();
+const router = Router();
 
 router.use(authMiddleware);
 

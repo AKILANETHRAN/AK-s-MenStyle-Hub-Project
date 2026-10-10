@@ -16,9 +16,9 @@ export function normalizePhone(rawPhone) {
 }
 
 /**
- * Record a communication delivery attempt in SQLite audit table
+ * Record a communication delivery attempt in PostgreSQL audit table
  */
-export function recordDelivery(purchaseId, userId, channel, status, recipient = null, providerMessageId = null, errorMessage = null, eventType = 'PURCHASE_SUCCESS', subject = null) {
+export async function recordDelivery(purchaseId, userId, channel, status, recipient = null, providerMessageId = null, errorMessage = null, eventType = 'PURCHASE_SUCCESS', subject = null) {
   try {
     let safeError = null;
     if (errorMessage) {
@@ -27,7 +27,7 @@ export function recordDelivery(purchaseId, userId, channel, status, recipient = 
         .slice(0, 500);
     }
 
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO notification_deliveries (
         purchase_id, user_id, channel, status, recipient, provider_message_id, error_message, event_type, subject, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -41,19 +41,19 @@ export function recordDelivery(purchaseId, userId, channel, status, recipient = 
       safeError,
       eventType,
       subject
-    );
+    ));
   } catch (err) {
     console.error(`[COMMUNICATION] Failed to record delivery log for ${channel}:`, err.message);
   }
 }
 
-function recordWhatsAppEvent(productId, eventType, recipient, status, providerMessageId = null, errorMessage = null) {
+async function recordWhatsAppEvent(productId, eventType, recipient, status, providerMessageId = null, errorMessage = null) {
   try {
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO whatsapp_event_deliveries (
         product_id, event_type, recipient, status, provider_message_id, error_message, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `).run(productId, eventType, recipient, status, providerMessageId, errorMessage ? String(errorMessage).slice(0, 500) : null);
+    `).run(productId, eventType, recipient, status, providerMessageId, errorMessage ? String(errorMessage).slice(0, 500) : null));
   } catch (err) {
     console.error('[WHATSAPP] Failed to record product event:', err.message);
   }
@@ -78,7 +78,7 @@ export async function sendTestProductWhatsAppEvent(product, eventType) {
   const phoneNumberId = process.env.META_WHATSAPP_PHONE_NUMBER_ID?.trim();
   const apiVersion = process.env.META_WHATSAPP_API_VERSION?.trim();
   if (!accessToken || !phoneNumberId || !apiVersion) {
-    recordWhatsAppEvent(product.id, eventType, recipient, 'NOT_CONFIGURED', null, 'Meta WhatsApp Cloud API credentials not configured');
+    (await recordWhatsAppEvent(product.id, eventType, recipient, 'NOT_CONFIGURED', null, 'Meta WhatsApp Cloud API credentials not configured'));
     return { status: 'NOT_CONFIGURED', message: 'Meta WhatsApp Cloud API credentials not configured.' };
   }
 
@@ -104,43 +104,43 @@ export async function sendTestProductWhatsAppEvent(product, eventType) {
     const responseData = await response.json().catch(() => ({}));
     if (!response.ok) {
       const message = responseData?.error?.message || `Meta WhatsApp API request failed with status ${response.status}.`;
-      recordWhatsAppEvent(product.id, eventType, recipient, 'FAILED', null, message);
+      (await recordWhatsAppEvent(product.id, eventType, recipient, 'FAILED', null, message));
       return { status: 'FAILED', message };
     }
 
     const messageId = responseData?.messages?.[0]?.id || null;
-    recordWhatsAppEvent(product.id, eventType, recipient, 'SENT', messageId);
+    (await recordWhatsAppEvent(product.id, eventType, recipient, 'SENT', messageId));
     return { status: 'SENT', messageId, recipient };
   } catch (err) {
-    recordWhatsAppEvent(product.id, eventType, recipient, 'FAILED', null, err.message);
+    (await recordWhatsAppEvent(product.id, eventType, recipient, 'FAILED', null, err.message));
     return { status: 'FAILED', message: err.message };
   }
 }
 
 /**
- * Record in-app notification in SQLite notifications table
+ * Record in-app notification in PostgreSQL notifications table
  * Guarantees in-app notification succeeds regardless of email/SMS status.
  */
-export function recordInAppPurchaseNotification(purchaseId, userId, purchase, user) {
+export async function recordInAppPurchaseNotification(purchaseId, userId, purchase, user) {
   try {
-    const existing = db.prepare(`
-      SELECT id FROM notifications 
+    const existing = (await db.prepare(`
+      SELECT id FROM notifications
       WHERE user_id = ? AND type = 'PURCHASE_SUCCESS' AND related_id = ?
-    `).get(userId, purchaseId);
+    `).get(userId, purchaseId));
 
     if (existing) return;
 
     const isTamil = user?.language_preference === 'ta';
     const total = purchase?.total_amount || 0;
     const title = isTamil ? 'வாங்குதல் உறுதிப்படுத்தப்பட்டது' : 'Purchase Confirmed';
-    const message = isTamil 
+    const message = isTamil
       ? `உங்கள் வாங்குதல் #${purchaseId} (₹${total}) வெற்றிகரமாக உறுதிப்படுத்தப்பட்டுள்ளது.`
       : `Your purchase #${purchaseId} for ₹${total} has been confirmed.`;
 
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO notifications (user_id, type, title, message, related_id, is_read, created_at)
       VALUES (?, 'PURCHASE_SUCCESS', ?, ?, ?, 0, CURRENT_TIMESTAMP)
-    `).run(userId, title, message, purchaseId);
+    `).run(userId, title, message, purchaseId));
   } catch (err) {
     console.error('[IN-APP NOTIFICATION] Failed to create in-app notification:', err.message);
   }
@@ -151,7 +151,7 @@ export function recordInAppPurchaseNotification(purchaseId, userId, purchase, us
  * Delegates to centralized emailService
  */
 export async function sendPurchaseEmail(purchase, user) {
-  return sendPurchaseSuccessEmail(purchase.id, user.id);
+  return (await sendPurchaseSuccessEmail(purchase.id, user.id));
 }
 
 /**
@@ -163,12 +163,12 @@ export async function sendPurchaseSMS(purchase, user) {
   const recipient = normalizePhone(rawPhone);
 
   if (user?.sms_notifications === 0) {
-    recordDelivery(purchase.id, user.id, channel, 'DISABLED', recipient, null, 'SMS disabled in user settings');
+    (await recordDelivery(purchase.id, user.id, channel, 'DISABLED', recipient, null, 'SMS disabled in user settings'));
     return { status: 'DISABLED', message: 'SMS notifications disabled in settings.' };
   }
 
   if (!recipient) {
-    recordDelivery(purchase.id, user.id, channel, 'FAILED', recipient, null, 'No phone number available on user profile');
+    (await recordDelivery(purchase.id, user.id, channel, 'FAILED', recipient, null, 'No phone number available on user profile'));
     return { status: 'FAILED', message: 'No phone number available on profile.' };
   }
 
@@ -177,7 +177,7 @@ export async function sendPurchaseSMS(purchase, user) {
   const fromNumber = process.env.TWILIO_SMS_FROM;
 
   if (!accountSid || !authToken || !fromNumber) {
-    recordDelivery(purchase.id, user.id, channel, 'NOT_CONFIGURED', recipient, null, 'Twilio SMS credentials not configured in environment');
+    (await recordDelivery(purchase.id, user.id, channel, 'NOT_CONFIGURED', recipient, null, 'Twilio SMS credentials not configured in environment'));
     return { status: 'NOT_CONFIGURED', message: 'Twilio SMS credentials not configured in environment.' };
   }
 
@@ -205,7 +205,7 @@ Delivery:
 ${purchase.delivery_city}, ${purchase.delivery_state} - ${purchase.delivery_pincode}
 
 Thank you for shopping with AK'S MEN STYLE.`;
-    const smsTemplate = getMessageTemplate('SMS');
+    const smsTemplate = (await getMessageTemplate('SMS'));
     const smsBody = smsTemplate
       ? renderMessageTemplate(smsTemplate, purchase, user)
       : defaultSmsBody;
@@ -216,11 +216,11 @@ Thank you for shopping with AK'S MEN STYLE.`;
       to: recipient
     });
 
-    recordDelivery(purchase.id, user.id, channel, 'SENT', recipient, message.sid, null);
+    (await recordDelivery(purchase.id, user.id, channel, 'SENT', recipient, message.sid, null));
     return { status: 'SENT', messageId: message.sid };
   } catch (err) {
     console.error('[SMS] Send failed:', err.message);
-    recordDelivery(purchase.id, user.id, channel, 'FAILED', recipient, null, err.message);
+    (await recordDelivery(purchase.id, user.id, channel, 'FAILED', recipient, null, err.message));
     return { status: 'FAILED', message: err.message };
   }
 }
@@ -240,19 +240,19 @@ export async function sendPurchaseWhatsApp(purchase, user) {
   const testRecipient = normalizePhone(process.env.META_WHATSAPP_TEST_RECIPIENT?.trim());
 
   if (user?.whatsapp_notifications === 0) {
-    recordDelivery(purchase.id, user.id, channel, 'DISABLED', normalizedPhone, null, 'WhatsApp disabled in user settings');
+    (await recordDelivery(purchase.id, user.id, channel, 'DISABLED', normalizedPhone, null, 'WhatsApp disabled in user settings'));
     return { status: 'DISABLED', message: 'WhatsApp notifications disabled in settings.' };
   }
 
   if (!normalizedPhone) {
-    recordDelivery(purchase.id, user.id, channel, 'FAILED', normalizedPhone, null, 'No phone number available on user profile');
+    (await recordDelivery(purchase.id, user.id, channel, 'FAILED', normalizedPhone, null, 'No phone number available on user profile'));
     return { status: 'FAILED', message: 'No phone number available on profile.' };
   }
 
   // During Step 1 development, never let a purchase notify an arbitrary
   // profile number. Only Meta's explicitly registered test recipient is used.
   if (testMode && (!testRecipient || normalizedPhone !== testRecipient)) {
-    recordDelivery(purchase.id, user.id, channel, 'DISABLED', normalizedPhone, null, 'Test mode restricts WhatsApp delivery to META_WHATSAPP_TEST_RECIPIENT');
+    (await recordDelivery(purchase.id, user.id, channel, 'DISABLED', normalizedPhone, null, 'Test mode restricts WhatsApp delivery to META_WHATSAPP_TEST_RECIPIENT'));
     return { status: 'DISABLED', message: 'Test mode restricts delivery to the Meta test recipient.' };
   }
 
@@ -263,14 +263,14 @@ export async function sendPurchaseWhatsApp(purchase, user) {
   const templateLanguage = process.env.META_WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'en_US';
 
   if (!accessToken || !phoneNumberId || !apiVersion) {
-    recordDelivery(purchase.id, user.id, channel, 'NOT_CONFIGURED', normalizedPhone, null, 'Meta WhatsApp Cloud API credentials not configured in environment');
+    (await recordDelivery(purchase.id, user.id, channel, 'NOT_CONFIGURED', normalizedPhone, null, 'Meta WhatsApp Cloud API credentials not configured in environment'));
     return { status: 'NOT_CONFIGURED', message: 'Meta WhatsApp Cloud API credentials not configured in environment.' };
   }
 
   const recipient = normalizedPhone.replace(/^\+/, '');
 
   try {
-    const whatsappTemplate = getMessageTemplate('WHATSAPP');
+    const whatsappTemplate = (await getMessageTemplate('WHATSAPP'));
     const whatsappBody = renderMessageTemplate(
       whatsappTemplate || DEFAULT_MESSAGE_TEMPLATES.WHATSAPP,
       purchase,
@@ -313,16 +313,16 @@ export async function sendPurchaseWhatsApp(purchase, user) {
       const apiError = responseData?.error;
       const errorMessage = apiError?.message || `Meta WhatsApp API request failed with status ${response.status}.`;
       console.error('[WHATSAPP] Meta Cloud API send failed:', errorMessage);
-      recordDelivery(purchase.id, user.id, channel, 'FAILED', normalizedPhone, null, errorMessage);
+      (await recordDelivery(purchase.id, user.id, channel, 'FAILED', normalizedPhone, null, errorMessage));
       return { status: 'FAILED', message: errorMessage };
     }
 
     const messageId = responseData?.messages?.[0]?.id || null;
-    recordDelivery(purchase.id, user.id, channel, 'SENT', normalizedPhone, messageId, null);
+    (await recordDelivery(purchase.id, user.id, channel, 'SENT', normalizedPhone, messageId, null));
     return { status: 'SENT', messageId };
   } catch (err) {
     console.error('[WHATSAPP] Send failed:', err.message);
-    recordDelivery(purchase.id, user.id, channel, 'FAILED', normalizedPhone, null, err.message);
+    (await recordDelivery(purchase.id, user.id, channel, 'FAILED', normalizedPhone, null, err.message));
     return { status: 'FAILED', message: err.message };
   }
 }
@@ -334,8 +334,8 @@ export async function sendPurchaseWhatsApp(purchase, user) {
  */
 export async function dispatchPurchaseCommunications(purchaseId, userId) {
   try {
-    // 1. Fetch authenticated user data authoritative from SQLite
-    const user = db.prepare(`
+    // 1. Fetch authenticated user data authoritative from PostgreSQL
+    const user = (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, phone, address, city, state, pincode,
              COALESCE(email_notifications, 1) AS email_notifications,
              COALESCE(sms_notifications, 1) AS sms_notifications,
@@ -343,7 +343,7 @@ export async function dispatchPurchaseCommunications(purchaseId, userId) {
              COALESCE(language_preference, 'en') AS language_preference
       FROM users
       WHERE id = ?
-    `).get(userId);
+    `).get(userId));
 
     if (!user) {
       console.warn(`[COMMUNICATION] User ${userId} not found for purchase ${purchaseId}`);
@@ -355,7 +355,7 @@ export async function dispatchPurchaseCommunications(purchaseId, userId) {
     }
 
     // 2. Fetch Purchase and items
-    const purchase = db.prepare(`SELECT * FROM purchases WHERE id = ?`).get(purchaseId);
+    const purchase = (await db.prepare(`SELECT * FROM purchases WHERE id = ?`).get(purchaseId));
     if (!purchase) {
       return {
         email: { status: 'FAILED', message: 'Purchase record not found' },
@@ -364,24 +364,24 @@ export async function dispatchPurchaseCommunications(purchaseId, userId) {
       };
     }
 
-    const items = db.prepare(`
+    const items = (await db.prepare(`
       SELECT pi.*, p.name AS product_name, p.cloth_type
       FROM purchase_items pi
       JOIN products p ON pi.product_id = p.id
       WHERE pi.purchase_id = ?
-    `).all(purchaseId);
+    `).all(purchaseId));
 
     purchase.items = items;
 
-    // 3. Guaranteed in-app notification creation (Part 1 of Flow: Purchase -> SQLite Commit -> In-App Notification -> Email Check -> Gmail)
-    recordInAppPurchaseNotification(purchaseId, userId, purchase, user);
+    // 3. Guaranteed in-app notification creation (Part 1 of Flow: Purchase -> PostgreSQL Commit -> In-App Notification -> Email Check -> Gmail)
+    (await recordInAppPurchaseNotification(purchaseId, userId, purchase, user));
 
     // 4. Idempotency Check: if notifications have already been processed for this purchase, return recorded state
-    const existingDeliveries = db.prepare(`
+    const existingDeliveries = (await db.prepare(`
       SELECT channel, status, provider_message_id, error_message, created_at
       FROM notification_deliveries
       WHERE purchase_id = ?
-    `).all(purchaseId);
+    `).all(purchaseId));
 
     if (existingDeliveries && existingDeliveries.length > 0) {
       const summary = {
@@ -399,9 +399,9 @@ export async function dispatchPurchaseCommunications(purchaseId, userId) {
 
     // 5. Parallel Dispatch with Promise.allSettled (fault-tolerant)
     const [emailRes, smsRes, whatsappRes] = await Promise.allSettled([
-      sendPurchaseEmail(purchase, user),
-      sendPurchaseSMS(purchase, user),
-      sendPurchaseWhatsApp(purchase, user)
+      (await sendPurchaseEmail(purchase, user)),
+      (await sendPurchaseSMS(purchase, user)),
+      (await sendPurchaseWhatsApp(purchase, user))
     ]);
 
     return {

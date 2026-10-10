@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import db from '../config/database.js';
 import { getRecommendationsForProduct } from '../services/recommendationEngine.js';
 
@@ -10,7 +10,7 @@ const router = Router();
  * - Eligible: Tops (1-20, 31-50) and Bottoms (21-30). Returns { available: true, signature, anchorProduct, recommendations }
  * - Accessories: Shoes, Watches, Caps, Belts, Sunglasses (51-100). Returns { available: false, reason: "..." }
  */
-router.get('/product/:productId', (req, res) => {
+router.get('/product/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
     const numericId = parseInt(productId, 10);
@@ -22,7 +22,7 @@ router.get('/product/:productId', (req, res) => {
       });
     }
 
-    const data = getRecommendationsForProduct(numericId, db);
+    const data = (await getRecommendationsForProduct(numericId, db));
 
     if (!data) {
       return res.status(404).json({

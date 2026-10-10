@@ -9,23 +9,23 @@ import { parsePagination, paginationMeta } from '../utils/pagination.js';
  * GET /api/admin/metrics
  * Returns real database counts for all core entities
  */
-export function getAdminMetrics(req, res) {
+export async function getAdminMetrics(req, res) {
   try {
-    const totalUsers = db.prepare('SELECT COUNT(*) AS count FROM users').get().count;
-    const totalProducts = db.prepare('SELECT COUNT(*) AS count FROM products').get().count;
-    const totalPurchases = db.prepare('SELECT COUNT(*) AS count FROM purchases').get().count;
-    const totalWishlistItems = db.prepare('SELECT COUNT(*) AS count FROM wishlist_items').get().count;
-    const totalFriendConnections = db.prepare("SELECT COUNT(*) AS count FROM friendships WHERE status = 'ACCEPTED'").get().count;
-    const totalVtonResults = db.prepare('SELECT COUNT(*) AS count FROM try_on_results').get().count;
-    
+    const totalUsers = (await db.prepare('SELECT COUNT(*) AS count FROM users').get()).count;
+    const totalProducts = (await db.prepare('SELECT COUNT(*) AS count FROM products').get()).count;
+    const totalPurchases = (await db.prepare('SELECT COUNT(*) AS count FROM purchases').get()).count;
+    const totalWishlistItems = (await db.prepare('SELECT COUNT(*) AS count FROM wishlist_items').get()).count;
+    const totalFriendConnections = (await db.prepare("SELECT COUNT(*) AS count FROM friendships WHERE status = 'ACCEPTED'").get()).count;
+    const totalVtonResults = (await db.prepare('SELECT COUNT(*) AS count FROM try_on_results').get()).count;
+
     let totalRecentlyAccessed = 0;
     try {
-      totalRecentlyAccessed = db.prepare('SELECT COUNT(*) AS count FROM recently_accessed').get().count;
+      totalRecentlyAccessed = (await db.prepare('SELECT COUNT(*) AS count FROM recently_accessed').get()).count;
     } catch (e) {
       totalRecentlyAccessed = 0;
     }
 
-    const totalRevenue = db.prepare('SELECT COALESCE(SUM(total_amount), 0) AS total FROM purchases').get().total;
+    const totalRevenue = (await db.prepare('SELECT COALESCE(SUM(total_amount), 0) AS total FROM purchases').get()).total;
 
     return res.status(200).json({
       status: 'success',
@@ -51,13 +51,13 @@ export function getAdminMetrics(req, res) {
  * GET /api/admin/products
  * Returns full product catalog for admin overview
  */
-export function getAdminProducts(req, res) {
+export async function getAdminProducts(req, res) {
   try {
     const pagination = parsePagination(req.query, 20);
     if (pagination?.error) return res.status(400).json({ status: 'error', message: pagination.error });
-    const total = pagination ? db.prepare('SELECT COUNT(*) AS total FROM products').get().total : null;
-    const products = db.prepare(`
-      SELECT 
+    const total = pagination ? (await db.prepare('SELECT COUNT(*) AS total FROM products').get()).total : null;
+    const products = (await db.prepare(`
+      SELECT
         id, name, brand, category, cloth_type AS clothType, color,
         price, original_price AS originalPrice, discount_percent AS discountPercent,
         is_new_arrival AS isNewArrival,
@@ -67,7 +67,7 @@ export function getAdminProducts(req, res) {
       FROM products
       ORDER BY id ASC
       ${pagination ? 'LIMIT ? OFFSET ?' : ''}
-    `).all(...(pagination ? [pagination.pageSize, pagination.offset] : []));
+    `).all(...(pagination ? [pagination.pageSize, pagination.offset] : [])));
 
     const enrichedProducts = products.map(p => ({
       ...p,
@@ -95,7 +95,7 @@ export async function updateAdminProduct(req, res) {
     const { id } = req.params;
     const { price, discountPercent, stock, isNewArrival } = req.body;
 
-    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    const product = (await db.prepare('SELECT * FROM products WHERE id = ?').get(id));
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found.' });
     }
@@ -138,24 +138,24 @@ export async function updateAdminProduct(req, res) {
     const newStatus = newStock > 0 ? 'IN_STOCK' : 'SOLD_OUT';
     const newOriginalPrice = newDiscount === 0 ? newPrice : Math.round(newPrice / (1 - newDiscount / 100));
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE products
       SET price = ?, original_price = ?, discount_percent = ?, is_new_arrival = ?, stock = ?, status = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(newPrice, newOriginalPrice, newDiscount, newIsNewArrival ? 1 : 0, newStock, newStatus, id);
+    `).run(newPrice, newOriginalPrice, newDiscount, newIsNewArrival ? 1 : 0, newStock, newStatus, id));
 
-    const updated = db.prepare(`
+    const updated = (await db.prepare(`
       SELECT id, name, brand, category, price, original_price AS originalPrice, discount_percent AS discountPercent, is_new_arrival AS isNewArrival, stock, status, vton_supported AS vtonSupported
       FROM products
       WHERE id = ?
-    `).get(id);
+    `).get(id));
 
     const testEventPromises = [];
     if (newDiscount > 0 && newDiscount !== product.discount_percent) {
-      testEventPromises.push(sendTestProductWhatsAppEvent(updated, 'DISCOUNT_ALERT'));
+      testEventPromises.push((await sendTestProductWhatsAppEvent(updated, 'DISCOUNT_ALERT')));
     }
     if (newIsNewArrival && Number(product.is_new_arrival) !== 1) {
-      testEventPromises.push(sendTestProductWhatsAppEvent(updated, 'NEW_ARRIVAL'));
+      testEventPromises.push((await sendTestProductWhatsAppEvent(updated, 'NEW_ARRIVAL')));
     }
 
     const whatsappTestEvents = await Promise.all(testEventPromises);
@@ -175,20 +175,20 @@ export async function updateAdminProduct(req, res) {
  * GET /api/admin/users
  * Returns user accounts without exposing passwords or password hashes
  */
-export function getAdminUsers(req, res) {
+export async function getAdminUsers(req, res) {
   try {
     const pagination = parsePagination(req.query, 20);
     if (pagination?.error) return res.status(400).json({ status: 'error', message: pagination.error });
-    const total = pagination ? db.prepare('SELECT COUNT(*) AS total FROM users').get().total : null;
-    const users = db.prepare(`
-      SELECT 
+    const total = pagination ? (await db.prepare('SELECT COUNT(*) AS total FROM users').get()).total : null;
+    const users = (await db.prepare(`
+      SELECT
         id, username, full_name AS fullName, email,
         COALESCE(role, 'USER') AS role,
         phone, city, state, created_at AS createdAt
       FROM users
       ORDER BY id DESC
       ${pagination ? 'LIMIT ? OFFSET ?' : ''}
-    `).all(...(pagination ? [pagination.pageSize, pagination.offset] : []));
+    `).all(...(pagination ? [pagination.pageSize, pagination.offset] : [])));
 
     return res.status(200).json({
       status: 'success',
@@ -206,13 +206,13 @@ export function getAdminUsers(req, res) {
  * GET /api/admin/purchases
  * Real purchases with associated owner username and items
  */
-export function getAdminPurchases(req, res) {
+export async function getAdminPurchases(req, res) {
   try {
     const pagination = parsePagination(req.query, 10);
     if (pagination?.error) return res.status(400).json({ status: 'error', message: pagination.error });
-    const total = pagination ? db.prepare('SELECT COUNT(*) AS total FROM purchases').get().total : null;
-    const purchases = db.prepare(`
-      SELECT 
+    const total = pagination ? (await db.prepare('SELECT COUNT(*) AS total FROM purchases').get()).total : null;
+    const purchases = (await db.prepare(`
+      SELECT
         p.id,
         p.user_id AS userId,
         u.username AS ownerUsername,
@@ -227,10 +227,10 @@ export function getAdminPurchases(req, res) {
       JOIN users u ON p.user_id = u.id
       ORDER BY p.id DESC
       ${pagination ? 'LIMIT ? OFFSET ?' : 'LIMIT 100'}
-    `).all(...(pagination ? [pagination.pageSize, pagination.offset] : []));
+    `).all(...(pagination ? [pagination.pageSize, pagination.offset] : [])));
 
     const getItemsStmt = db.prepare(`
-      SELECT 
+      SELECT
         pi.id,
         pi.product_id AS productId,
         pr.name AS productName,
@@ -244,13 +244,13 @@ export function getAdminPurchases(req, res) {
       WHERE pi.purchase_id = ?
     `);
 
-    const result = purchases.map(purchase => {
-      const items = getItemsStmt.all(purchase.id);
+    const result = (await Promise.all(purchases.map(async purchase => {
+      const items = (await getItemsStmt.all(purchase.id));
       return {
         ...purchase,
         items
       };
-    });
+    })));
 
     return res.status(200).json({
       status: 'success',
@@ -268,14 +268,14 @@ export function getAdminPurchases(req, res) {
  * GET /api/admin/vton-stats
  * Real VTON usage statistics (totals, tops, bottoms, success count)
  */
-export function getAdminVtonStats(req, res) {
+export async function getAdminVtonStats(req, res) {
   try {
-    const totalResults = db.prepare('SELECT COUNT(*) AS count FROM try_on_results').get().count;
-    const topCount = db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE category = 'tops'").get().count;
-    const bottomCount = db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE category = 'bottoms'").get().count;
-    const successCount = db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE status = 'COMPLETED'").get().count;
-    const processingCount = db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE status = 'PROCESSING'").get().count;
-    const failedCount = db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE status = 'FAILED'").get().count;
+    const totalResults = (await db.prepare('SELECT COUNT(*) AS count FROM try_on_results').get()).count;
+    const topCount = (await db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE category = 'tops'").get()).count;
+    const bottomCount = (await db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE category = 'bottoms'").get()).count;
+    const successCount = (await db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE status = 'COMPLETED'").get()).count;
+    const processingCount = (await db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE status = 'PROCESSING'").get()).count;
+    const failedCount = (await db.prepare("SELECT COUNT(*) AS count FROM try_on_results WHERE status = 'FAILED'").get()).count;
 
     return res.status(200).json({
       status: 'success',
@@ -298,31 +298,31 @@ export function getAdminVtonStats(req, res) {
  * GET /api/admin/recent-activity
  * Returns aggregate recent transactions and social activity
  */
-export function getAdminRecentActivity(req, res) {
+export async function getAdminRecentActivity(req, res) {
   try {
-    const recentPurchases = db.prepare(`
+    const recentPurchases = (await db.prepare(`
       SELECT p.id, u.username, p.total_amount, p.created_at, 'PURCHASE' as type
       FROM purchases p
       JOIN users u ON p.user_id = u.id
       ORDER BY p.id DESC
       LIMIT 5
-    `).all();
+    `).all());
 
-    const recentShares = db.prepare(`
+    const recentShares = (await db.prepare(`
       SELECT ws.id, s.username as sender, r.username as receiver, ws.share_type, ws.created_at, 'SHARE' as type
       FROM wishlist_shares ws
       JOIN users s ON ws.sender_id = s.id
       JOIN users r ON ws.receiver_id = r.id
       ORDER BY ws.id DESC
       LIMIT 5
-    `).all();
+    `).all());
 
-    const recentUsers = db.prepare(`
+    const recentUsers = (await db.prepare(`
       SELECT id, username, full_name, email, role, created_at, 'REGISTRATION' as type
       FROM users
       ORDER BY id DESC
       LIMIT 5
-    `).all();
+    `).all());
 
     return res.status(200).json({
       status: 'success',

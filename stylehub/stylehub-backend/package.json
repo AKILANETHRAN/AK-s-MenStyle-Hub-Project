@@ -7,12 +7,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/username-manual-test.js && node test/buy-more-save-more-test.js && node test/email-purchase-notification-test.js",
-    "test:email": "node test/email-purchase-notification-test.js",
-    "test:username": "node test/username-manual-test.js",
-    "test:cart": "node test/buy-more-save-more-test.js",
-    "test:api": "node test/final-api-verification.js",
-    "test:final": "node test/username-manual-test.js && node test/buy-more-save-more-test.js && node test/email-purchase-notification-test.js && node test/final-api-verification.js"
+    "test": "node --test test/frontend-url-test.js test/postgres-test.js",
+    "test:postgres": "node --test test/postgres-test.js",
+    "db:init": "node scripts/init-postgres.js",
+    "db:migrate": "node scripts/migrate-sqlite-to-postgres.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -24,6 +22,7 @@
     "mongodb": "^6.21.0",
     "multer": "^2.4.0",
     "nodemailer": "^10.0.13",
+    "pg": "^8.23.1",
     "twilio": "^6.1.2"
   }
 }

@@ -8,10 +8,10 @@ const ALLOWED_LANGUAGES = ['en', 'ta', 'hi'];
  * Get authenticated user's settings & preferences
  * GET /api/settings
  */
-export function getSettings(req, res) {
+export async function getSettings(req, res) {
   try {
     const userId = req.userId;
-    const user = db.prepare(`
+    const user = (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, phone, address, city, state, pincode, role,
              COALESCE(email_notifications, 1) AS email_notifications,
              COALESCE(sms_notifications, 1) AS sms_notifications,
@@ -20,7 +20,7 @@ export function getSettings(req, res) {
              COALESCE(language_preference, 'en') AS language_preference
       FROM users
       WHERE id = ?
-    `).get(userId);
+    `).get(userId));
 
     if (!user) {
       return res.status(404).json({ status: 'error', message: 'User not found.' });
@@ -64,12 +64,12 @@ export function getSettings(req, res) {
  * Update authenticated user's settings & preferences
  * PUT /api/settings
  */
-export function updateSettings(req, res) {
+export async function updateSettings(req, res) {
   try {
     const userId = req.userId;
     const { theme, language, communication } = req.body || {};
 
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    const user = (await db.prepare('SELECT * FROM users WHERE id = ?').get(userId));
     if (!user) {
       return res.status(404).json({ status: 'error', message: 'User not found.' });
     }
@@ -100,7 +100,7 @@ export function updateSettings(req, res) {
       }
     }
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE users
       SET theme_preference = ?,
           language_preference = ?,
@@ -109,7 +109,7 @@ export function updateSettings(req, res) {
           whatsapp_notifications = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(updatedTheme, updatedLanguage, emailNotif, smsNotif, whatsappNotif, userId);
+    `).run(updatedTheme, updatedLanguage, emailNotif, smsNotif, whatsappNotif, userId));
 
     const emailConfig = getEmailConfig();
 
@@ -138,10 +138,10 @@ export function updateSettings(req, res) {
  * Get notification delivery history for the authenticated user
  * GET /api/settings/notifications/history
  */
-export function getNotificationHistory(req, res) {
+export async function getNotificationHistory(req, res) {
   try {
     const userId = req.userId;
-    const history = db.prepare(`
+    const history = (await db.prepare(`
       SELECT nd.id, nd.purchase_id, nd.channel, nd.status, nd.recipient, nd.created_at,
              p.total_amount, p.purchase_type
       FROM notification_deliveries nd
@@ -149,7 +149,7 @@ export function getNotificationHistory(req, res) {
       WHERE nd.user_id = ?
       ORDER BY nd.id DESC
       LIMIT 20
-    `).all(userId);
+    `).all(userId));
 
     return res.status(200).json({
       status: 'success',

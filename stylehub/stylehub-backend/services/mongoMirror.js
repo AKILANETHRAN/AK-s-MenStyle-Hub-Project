@@ -40,18 +40,18 @@ export async function syncMongoMirror() {
 
   await connectMongo();
 
-  const products = db.prepare('SELECT * FROM products').all()
+  const products = (await db.prepare('SELECT * FROM products').all())
     .map((product) => ({ _id: product.id, ...product }));
 
   // Password hashes are intentionally excluded from the MongoDB mirror.
-  const users = db.prepare(`
+  const users = (await db.prepare(`
     SELECT id, username, full_name, email, role, phone, age, address, city,
            state, pincode, created_at, updated_at
     FROM users
-  `).all().map((user) => ({ _id: user.id, ...user }));
+  `).all()).map((user) => ({ _id: user.id, ...user }));
 
-  const orders = db.prepare('SELECT * FROM orders').all();
-  const orderItems = db.prepare('SELECT * FROM order_items').all();
+  const orders = (await db.prepare('SELECT * FROM orders').all());
+  const orderItems = (await db.prepare('SELECT * FROM order_items').all());
   const itemsByOrderId = new Map();
 
   for (const item of orderItems) {
@@ -86,7 +86,7 @@ export async function startMongoMirror() {
 
   try {
     const result = await syncMongoMirror();
-    console.log('[MongoDB] Initial SQLite mirror complete:', result);
+    console.log('[MongoDB] Initial PostgreSQL mirror complete:', result);
   } catch (error) {
     console.error('[MongoDB] Initial mirror failed:', error.message);
   }
@@ -100,7 +100,7 @@ export async function startMongoMirror() {
   const interval = setInterval(async () => {
     try {
       const result = await syncMongoMirror();
-      console.log('[MongoDB] SQLite mirror refreshed:', result);
+      console.log('[MongoDB] PostgreSQL mirror refreshed:', result);
     } catch (error) {
       console.error('[MongoDB] Mirror refresh failed:', error.message);
     }

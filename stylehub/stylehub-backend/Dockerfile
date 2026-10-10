@@ -18,8 +18,6 @@ WORKDIR /app
 COPY --from=build /app ./
 
 ENV NODE_ENV=production
-ENV STYLEHUB_DB_PATH=/app/data/stylehub.sqlite
-RUN mkdir -p /app/data
 EXPOSE 5000
 
 CMD ["npm", "start"]

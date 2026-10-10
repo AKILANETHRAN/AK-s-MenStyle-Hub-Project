@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   createWishlistShare,
@@ -7,7 +7,7 @@ import {
   addShareFeedback
 } from '../controllers/wishlistShareController.js';
 
-const router = express.Router();
+const router = Router();
 
 router.use(authMiddleware);
 

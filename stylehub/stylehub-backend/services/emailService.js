@@ -113,10 +113,10 @@ export async function verifySmtpConnection() {
 }
 
 /**
- * Record an email communication delivery attempt in SQLite audit table.
+ * Record an email communication delivery attempt in PostgreSQL audit table.
  * Never stores credentials.
  */
-export function recordEmailDelivery(purchaseId, userId, status, recipient = null, providerMessageId = null, errorMessage = null, eventType = 'PURCHASE_SUCCESS', subject = null) {
+export async function recordEmailDelivery(purchaseId, userId, status, recipient = null, providerMessageId = null, errorMessage = null, eventType = 'PURCHASE_SUCCESS', subject = null) {
   try {
     // Sanitize any potential secrets from error message
     let safeError = null;
@@ -126,7 +126,7 @@ export function recordEmailDelivery(purchaseId, userId, status, recipient = null
         .slice(0, 500);
     }
 
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO notification_deliveries (
         purchase_id, user_id, channel, status, recipient, provider_message_id, error_message, event_type, subject, created_at
       ) VALUES (?, ?, 'EMAIL', ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -139,7 +139,7 @@ export function recordEmailDelivery(purchaseId, userId, status, recipient = null
       safeError,
       eventType,
       subject
-    );
+    ));
   } catch (err) {
     console.error('[EMAIL AUDIT] Failed to record delivery log:', err.message);
   }
@@ -360,7 +360,7 @@ This purchase was made through the AK'S MEN STYLE platform.
       <td align="center">
         <!-- Main Container -->
         <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: #12151b; border: 1px solid #262a33; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-          
+
           <!-- Brand Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #161922 0%, #0d0f14 100%); padding: 26px 30px; text-align: center; border-bottom: 2px solid #d4af37;">
@@ -503,7 +503,7 @@ export async function sendEmail({
   // 1. Validate Recipient
   if (!to || typeof to !== 'string' || !to.includes('@')) {
     if (purchaseId && userId) {
-      recordEmailDelivery(purchaseId, userId, 'FAILED', to, null, 'Invalid recipient email address', eventType, subject);
+      (await recordEmailDelivery(purchaseId, userId, 'FAILED', to, null, 'Invalid recipient email address', eventType, subject));
     }
     return {
       status: 'FAILED',
@@ -514,7 +514,7 @@ export async function sendEmail({
   // 2. Validate Subject
   if (!subject || typeof subject !== 'string' || !subject.trim()) {
     if (purchaseId && userId) {
-      recordEmailDelivery(purchaseId, userId, 'FAILED', to, null, 'Subject is required', eventType, subject);
+      (await recordEmailDelivery(purchaseId, userId, 'FAILED', to, null, 'Subject is required', eventType, subject));
     }
     return {
       status: 'FAILED',
@@ -527,7 +527,7 @@ export async function sendEmail({
   // 3. Configuration Check
   if (!config.isConfigured) {
     if (purchaseId && userId) {
-      recordEmailDelivery(purchaseId, userId, 'NOT_CONFIGURED', to, null, 'SMTP credentials not configured in environment', eventType, subject);
+      (await recordEmailDelivery(purchaseId, userId, 'NOT_CONFIGURED', to, null, 'SMTP credentials not configured in environment', eventType, subject));
     }
     return {
       status: 'NOT_CONFIGURED',
@@ -539,7 +539,7 @@ export async function sendEmail({
   if (!config.isEnabled) {
     const simulatedId = `simulated-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     if (purchaseId && userId) {
-      recordEmailDelivery(purchaseId, userId, 'SIMULATED', to, simulatedId, 'Email simulated (EMAIL_ENABLED=false)', eventType, subject);
+      (await recordEmailDelivery(purchaseId, userId, 'SIMULATED', to, simulatedId, 'Email simulated (EMAIL_ENABLED=false)', eventType, subject));
     }
     return {
       status: 'SIMULATED',
@@ -561,7 +561,7 @@ export async function sendEmail({
     });
 
     if (purchaseId && userId) {
-      recordEmailDelivery(purchaseId, userId, 'SENT', to, info.messageId, null, eventType, subject);
+      (await recordEmailDelivery(purchaseId, userId, 'SENT', to, info.messageId, null, eventType, subject));
     }
 
     return {
@@ -571,7 +571,7 @@ export async function sendEmail({
   } catch (err) {
     console.error('[EMAIL ERROR] Failed to send email via SMTP:', err.message);
     if (purchaseId && userId) {
-      recordEmailDelivery(purchaseId, userId, 'FAILED', to, null, err.message, eventType, subject);
+      (await recordEmailDelivery(purchaseId, userId, 'FAILED', to, null, err.message, eventType, subject));
     }
     return {
       status: 'FAILED',
@@ -582,7 +582,7 @@ export async function sendEmail({
 
 /**
  * Authoritative Purchase Success Email Dispatcher:
- * - Resolves recipient strictly from authenticated user in SQLite (req.userId)
+ * - Resolves recipient strictly from authenticated user in PostgreSQL (req.userId)
  * - Checks communication preference (email_notifications)
  * - Checks idempotency to prevent duplicate sends on refresh / navigation
  * - Formats multilingual email (EN / TA)
@@ -590,14 +590,14 @@ export async function sendEmail({
  */
 export async function sendPurchaseSuccessEmail(purchaseId, userId, { forceResend = false } = {}) {
   try {
-    // 1. Authoritative User Lookup from SQLite (Strict Recipient Security)
-    const user = db.prepare(`
+    // 1. Authoritative User Lookup from PostgreSQL (Strict Recipient Security)
+    const user = (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, phone,
              COALESCE(email_notifications, 1) AS email_notifications,
              COALESCE(language_preference, 'en') AS language_preference
       FROM users
       WHERE id = ?
-    `).get(userId);
+    `).get(userId));
 
     if (!user) {
       return { status: 'FAILED', message: 'User not found in database.' };
@@ -607,24 +607,24 @@ export async function sendPurchaseSuccessEmail(purchaseId, userId, { forceResend
 
     // 2. Email Preference Check
     if (user.email_notifications === 0) {
-      recordEmailDelivery(purchaseId, userId, 'DISABLED', recipient, null, 'Email notifications disabled in user settings');
+      (await recordEmailDelivery(purchaseId, userId, 'DISABLED', recipient, null, 'Email notifications disabled in user settings'));
       return { status: 'DISABLED', message: 'Email notifications disabled in user settings.' };
     }
 
     if (!recipient || !recipient.includes('@')) {
-      recordEmailDelivery(purchaseId, userId, 'FAILED', recipient, null, 'Invalid user email on profile');
+      (await recordEmailDelivery(purchaseId, userId, 'FAILED', recipient, null, 'Invalid user email on profile'));
       return { status: 'FAILED', message: 'No valid email address found on user profile.' };
     }
 
     // 3. Idempotency Protection:
     // If not forced resend, check if email was already SENT or SIMULATED for this purchase
     if (!forceResend) {
-      const existingDelivery = db.prepare(`
+      const existingDelivery = (await db.prepare(`
         SELECT status, provider_message_id, created_at
         FROM notification_deliveries
         WHERE purchase_id = ? AND channel = 'EMAIL' AND status IN ('SENT', 'SIMULATED')
         ORDER BY id DESC LIMIT 1
-      `).get(purchaseId);
+      `).get(purchaseId));
 
       if (existingDelivery) {
         return {
@@ -636,18 +636,18 @@ export async function sendPurchaseSuccessEmail(purchaseId, userId, { forceResend
       }
     }
 
-    // 4. Fetch Purchase Details and Items Authoritatively from SQLite
-    const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId);
+    // 4. Fetch Purchase Details and Items Authoritatively from PostgreSQL
+    const purchase = (await db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId));
     if (!purchase) {
       return { status: 'FAILED', message: 'Purchase record not found.' };
     }
 
-    const items = db.prepare(`
+    const items = (await db.prepare(`
       SELECT pi.*, p.name AS product_name, p.image AS product_image, p.price, p.cloth_type
       FROM purchase_items pi
       JOIN products p ON pi.product_id = p.id
       WHERE pi.purchase_id = ?
-    `).all(purchaseId);
+    `).all(purchaseId));
 
     purchase.items = items;
 
@@ -670,7 +670,7 @@ export async function sendPurchaseSuccessEmail(purchaseId, userId, { forceResend
       language: user.language_preference || 'en'
     });
 
-    const customBody = getMessageTemplate('EMAIL');
+    const customBody = (await getMessageTemplate('EMAIL'));
     if (customBody) {
       text = renderMessageTemplate(customBody, purchase, user);
       const escaped = text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -691,7 +691,7 @@ export async function sendPurchaseSuccessEmail(purchaseId, userId, { forceResend
     return result;
   } catch (err) {
     console.error('[EMAIL DISPATCH ERROR] Unexpected failure:', err);
-    recordEmailDelivery(purchaseId, userId, 'FAILED', null, null, err.message);
+    (await recordEmailDelivery(purchaseId, userId, 'FAILED', null, null, err.message));
     return {
       status: 'FAILED',
       message: err.message

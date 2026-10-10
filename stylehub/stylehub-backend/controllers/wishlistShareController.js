@@ -3,12 +3,12 @@ import db from '../config/database.js';
 /**
  * Helper to verify that two users are currently accepted friends
  */
-function areAcceptedFriends(userA, userB) {
-  const row = db.prepare(`
+async function areAcceptedFriends(userA, userB) {
+  const row = (await db.prepare(`
     SELECT id FROM friendships
     WHERE status = 'ACCEPTED'
       AND ((requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?))
-  `).get(userA, userB, userB, userA);
+  `).get(userA, userB, userB, userA));
   return !!row;
 }
 
@@ -16,7 +16,7 @@ function areAcceptedFriends(userA, userB) {
  * POST /api/wishlist/shares
  * Body: { receiverId: number, productIds: number[] }
  */
-export function createWishlistShare(req, res, next) {
+export async function createWishlistShare(req, res, next) {
   try {
     const senderId = req.userId;
     const { receiverId, productIds, shareType } = req.body;
@@ -31,12 +31,12 @@ export function createWishlistShare(req, res, next) {
 
     // 1. Resolve receiver: handles case where either userId or friendshipId was passed
     let effectiveReceiverId = parsedReceiverId;
-    let receiver = db.prepare('SELECT id, username FROM users WHERE id = ?').get(effectiveReceiverId);
+    let receiver = (await db.prepare('SELECT id, username FROM users WHERE id = ?').get(effectiveReceiverId));
     if (!receiver) {
-      const friendship = db.prepare('SELECT requester_id, receiver_id FROM friendships WHERE id = ? AND status = "ACCEPTED"').get(parsedReceiverId);
+      const friendship = (await db.prepare("SELECT requester_id, receiver_id FROM friendships WHERE id = ? AND status = 'ACCEPTED'").get(parsedReceiverId));
       if (friendship) {
         effectiveReceiverId = friendship.requester_id === senderId ? friendship.receiver_id : friendship.requester_id;
-        receiver = db.prepare('SELECT id, username FROM users WHERE id = ?').get(effectiveReceiverId);
+        receiver = (await db.prepare('SELECT id, username FROM users WHERE id = ?').get(effectiveReceiverId));
       }
     }
 
@@ -62,7 +62,7 @@ export function createWishlistShare(req, res, next) {
     }
 
     // 2. Strict Privacy Check: Sender and receiver must be ACCEPTED friends
-    if (!areAcceptedFriends(senderId, effectiveReceiverId)) {
+    if (!(await areAcceptedFriends(senderId, effectiveReceiverId))) {
       return res.status(403).json({
         status: 'error',
         message: 'Private sharing is restricted to accepted friends only.'
@@ -70,17 +70,17 @@ export function createWishlistShare(req, res, next) {
     }
 
     // 3. Sender's wishlist must exist
-    let senderWishlist = db.prepare('SELECT id FROM wishlists WHERE user_id = ?').get(senderId);
+    let senderWishlist = (await db.prepare('SELECT id FROM wishlists WHERE user_id = ?').get(senderId));
     if (!senderWishlist) {
-      db.prepare('INSERT INTO wishlists (user_id) VALUES (?)').run(senderId);
-      senderWishlist = db.prepare('SELECT id FROM wishlists WHERE user_id = ?').get(senderId);
+      (await db.prepare('INSERT INTO wishlists (user_id) VALUES (?)').run(senderId));
+      senderWishlist = (await db.prepare('SELECT id FROM wishlists WHERE user_id = ?').get(senderId));
     }
 
     // 4. Verify all productIds belong to catalog products
     const placeholders = productIds.map(() => '?').join(',');
-    const validCatalogProducts = db.prepare(`
+    const validCatalogProducts = (await db.prepare(`
       SELECT id FROM products WHERE id IN (${placeholders})
-    `).all(...productIds.map(Number)).map(r => r.id);
+    `).all(...productIds.map(Number))).map(r => r.id);
 
     if (validCatalogProducts.length === 0) {
       return res.status(400).json({
@@ -101,36 +101,36 @@ export function createWishlistShare(req, res, next) {
     // If type is PRODUCTS, also ensure sender has them in wishlist
     const type = (shareType === 'LOOK' || shareType === 'LOOKS') ? 'LOOK' : 'PRODUCTS';
     if (type === 'PRODUCTS') {
-      const insertWishlistItem = db.prepare('INSERT OR IGNORE INTO wishlist_items (wishlist_id, product_id) VALUES (?, ?)');
+      const insertWishlistItem = db.prepare("INSERT INTO wishlist_items (wishlist_id, product_id) VALUES (?, ?) ON CONFLICT DO NOTHING");
       for (const pId of sanitizedProductIds) {
-        insertWishlistItem.run(senderWishlist.id, pId);
+        (await insertWishlistItem.run(senderWishlist.id, pId));
       }
     }
 
     // 5. Create fresh wishlist_shares entry with share_type
-    const shareResult = db.prepare(`
+    const shareResult = (await db.prepare(`
       INSERT INTO wishlist_shares (sender_id, receiver_id, wishlist_id, share_type, created_at)
       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `).run(senderId, effectiveReceiverId, senderWishlist.id, type);
+    `).run(senderId, effectiveReceiverId, senderWishlist.id, type));
     const shareId = shareResult.lastInsertRowid;
 
     // 6. Save items in wishlist_share_items in exact order
-    const insertItem = db.prepare('INSERT OR IGNORE INTO wishlist_share_items (share_id, product_id) VALUES (?, ?)');
+    const insertItem = db.prepare("INSERT INTO wishlist_share_items (share_id, product_id) VALUES (?, ?) ON CONFLICT DO NOTHING");
     for (const pId of sanitizedProductIds) {
-      insertItem.run(shareId, pId);
+      (await insertItem.run(shareId, pId));
     }
 
     // 7. Notification for receiver with related_id
-    const sender = db.prepare('SELECT username FROM users WHERE id = ?').get(senderId);
+    const sender = (await db.prepare('SELECT username FROM users WHERE id = ?').get(senderId));
     const notifTitle = type === 'LOOK' ? 'Complete Look Shared' : 'Curated Products Shared';
     const notifMsg = type === 'LOOK'
       ? `@${sender.username} shared a complete outfit look with you.`
       : `@${sender.username} shared ${sanitizedProductIds.length} curated product(s) with you.`;
 
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO notifications (user_id, type, title, message, related_id)
       VALUES (?, 'WISHLIST_SHARED', ?, ?, ?)
-    `).run(effectiveReceiverId, notifTitle, notifMsg, shareId);
+    `).run(effectiveReceiverId, notifTitle, notifMsg, shareId));
 
     return res.status(201).json({
       status: 'success',
@@ -151,11 +151,11 @@ export function createWishlistShare(req, res, next) {
  * GET /api/wishlist/shares
  * Returns all shared looks for the authenticated user
  */
-export function getWishlistShares(req, res, next) {
+export async function getWishlistShares(req, res, next) {
   try {
     const userId = req.userId;
 
-    const sharedWithMe = db.prepare(`
+    const sharedWithMe = (await db.prepare(`
       SELECT
         ws.id AS shareId,
         ws.sender_id AS senderId,
@@ -172,9 +172,9 @@ export function getWishlistShares(req, res, next) {
       WHERE ws.receiver_id = ?
       GROUP BY ws.id
       ORDER BY ws.created_at DESC
-    `).all(userId);
+    `).all(userId));
 
-    const sharedByMe = db.prepare(`
+    const sharedByMe = (await db.prepare(`
       SELECT
         ws.id AS shareId,
         ws.receiver_id AS receiverId,
@@ -191,7 +191,7 @@ export function getWishlistShares(req, res, next) {
       WHERE ws.sender_id = ?
       GROUP BY ws.id
       ORDER BY ws.created_at DESC
-    `).all(userId);
+    `).all(userId));
 
     return res.status(200).json({
       status: 'success',
@@ -209,12 +209,12 @@ export function getWishlistShares(req, res, next) {
  * GET /api/wishlist/shares/:shareId
  * Fetch single shared look. Access strictly limited to sender & intended receiver.
  */
-export function getWishlistShareById(req, res, next) {
+export async function getWishlistShareById(req, res, next) {
   try {
     const userId = req.userId;
     const shareId = parseInt(req.params.shareId, 10);
 
-    const share = db.prepare(`
+    const share = (await db.prepare(`
       SELECT
         ws.id AS shareId,
         ws.sender_id AS senderId,
@@ -230,7 +230,7 @@ export function getWishlistShareById(req, res, next) {
       JOIN users s ON s.id = ws.sender_id
       JOIN users r ON r.id = ws.receiver_id
       WHERE ws.id = ?
-    `).get(shareId);
+    `).get(shareId));
 
     if (!share) {
       return res.status(404).json({
@@ -248,7 +248,7 @@ export function getWishlistShareById(req, res, next) {
     }
 
     // Friendship Verification: Must still be accepted friends
-    if (!areAcceptedFriends(share.senderId, share.receiverId)) {
+    if (!(await areAcceptedFriends(share.senderId, share.receiverId))) {
       return res.status(403).json({
         status: 'error',
         message: 'Private share is no longer accessible because friendship was removed.'
@@ -256,7 +256,7 @@ export function getWishlistShareById(req, res, next) {
     }
 
     // Fetch shared products preserving exact shared order
-    const products = db.prepare(`
+    const products = (await db.prepare(`
       SELECT
         p.id AS productId,
         p.name,
@@ -274,10 +274,10 @@ export function getWishlistShareById(req, res, next) {
       JOIN products p ON p.id = wsi.product_id
       WHERE wsi.share_id = ?
       ORDER BY wsi.id ASC
-    `).all(shareId);
+    `).all(shareId));
 
     // Fetch feedback
-    const feedback = db.prepare(`
+    const feedback = (await db.prepare(`
       SELECT
         wf.id,
         wf.user_id AS userId,
@@ -290,7 +290,7 @@ export function getWishlistShareById(req, res, next) {
       JOIN users u ON u.id = wf.user_id
       WHERE wf.share_id = ?
       ORDER BY wf.created_at ASC
-    `).all(shareId);
+    `).all(shareId));
 
     return res.status(200).json({
       status: 'success',
@@ -345,7 +345,7 @@ export function getWishlistShareById(req, res, next) {
  * POST /api/wishlist/shares/:shareId/feedback
  * Receiver submits reaction (LIKE, LOVE, FIRE) and/or style comment
  */
-export function addShareFeedback(req, res, next) {
+export async function addShareFeedback(req, res, next) {
   try {
     const userId = req.userId;
     const shareId = parseInt(req.params.shareId, 10);
@@ -358,11 +358,11 @@ export function addShareFeedback(req, res, next) {
       });
     }
 
-    const share = db.prepare(`
+    const share = (await db.prepare(`
       SELECT ws.id, ws.sender_id, ws.receiver_id
       FROM wishlist_shares ws
       WHERE ws.id = ?
-    `).get(shareId);
+    `).get(shareId));
 
     if (!share) {
       return res.status(404).json({
@@ -380,7 +380,7 @@ export function addShareFeedback(req, res, next) {
     }
 
     // Friendship Verification: Must still be active accepted friends
-    if (!areAcceptedFriends(share.sender_id, share.receiver_id)) {
+    if (!(await areAcceptedFriends(share.sender_id, share.receiver_id))) {
       return res.status(403).json({
         status: 'error',
         message: 'You can only comment on shares with active friends.'
@@ -422,19 +422,19 @@ export function addShareFeedback(req, res, next) {
     }
 
     // Fetch existing feedback for this receiver and share
-    const existingRows = db.prepare(`
+    const existingRows = (await db.prepare(`
       SELECT id, reaction, comment
       FROM wishlist_feedback
       WHERE share_id = ? AND user_id = ?
       ORDER BY id ASC
-    `).all(shareId, userId);
+    `).all(shareId, userId));
 
     const existingFeedback = existingRows[0] || null;
 
     // Prune any legacy duplicate rows if they existed from previous buggy runs
     if (existingRows.length > 1) {
       for (let i = 1; i < existingRows.length; i++) {
-        db.prepare('DELETE FROM wishlist_feedback WHERE id = ?').run(existingRows[i].id);
+        (await db.prepare('DELETE FROM wishlist_feedback WHERE id = ?').run(existingRows[i].id));
       }
     }
 
@@ -449,22 +449,22 @@ export function addShareFeedback(req, res, next) {
     let feedbackId;
     let isNew = false;
     if (existingFeedback) {
-      db.prepare(`
+      (await db.prepare(`
         UPDATE wishlist_feedback
         SET reaction = ?, comment = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `).run(targetReaction, targetComment, existingFeedback.id);
+      `).run(targetReaction, targetComment, existingFeedback.id));
       feedbackId = existingFeedback.id;
     } else {
-      const insertResult = db.prepare(`
+      const insertResult = (await db.prepare(`
         INSERT INTO wishlist_feedback (share_id, user_id, reaction, comment)
         VALUES (?, ?, ?, ?)
-      `).run(shareId, userId, targetReaction, targetComment);
+      `).run(shareId, userId, targetReaction, targetComment));
       feedbackId = insertResult.lastInsertRowid;
       isNew = true;
     }
 
-    const currentUser = db.prepare('SELECT username FROM users WHERE id = ?').get(userId);
+    const currentUser = (await db.prepare('SELECT username FROM users WHERE id = ?').get(userId));
     const username = currentUser ? currentUser.username : 'Friend';
     const reactionEmoji = targetReaction === 'LOVE' ? '❤️' : targetReaction === 'FIRE' ? '🔥' : '👍';
 
@@ -481,12 +481,12 @@ export function addShareFeedback(req, res, next) {
       notifMsg = `@${username} left feedback on your shared look.`;
     }
 
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO notifications (user_id, type, title, message, related_id)
       VALUES (?, 'WISHLIST_FEEDBACK', ?, ?, ?)
-    `).run(share.sender_id, notifTitle, notifMsg, shareId);
+    `).run(share.sender_id, notifTitle, notifMsg, shareId));
 
-    const updatedFeedback = db.prepare(`
+    const updatedFeedback = (await db.prepare(`
       SELECT
         wf.id,
         wf.user_id AS userId,
@@ -500,7 +500,7 @@ export function addShareFeedback(req, res, next) {
       JOIN users u ON u.id = wf.user_id
       WHERE wf.share_id = ?
       ORDER BY wf.created_at ASC
-    `).all(shareId);
+    `).all(shareId));
 
     return res.status(201).json({
       status: 'success',

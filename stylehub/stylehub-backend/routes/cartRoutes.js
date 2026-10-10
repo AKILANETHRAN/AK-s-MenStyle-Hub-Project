@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   getCart,
@@ -8,7 +8,7 @@ import {
   clearCart
 } from '../controllers/cartController.js';
 
-const router = express.Router();
+const router = Router();
 
 // Enforce JWT authentication on all cart endpoints
 router.use(authMiddleware);

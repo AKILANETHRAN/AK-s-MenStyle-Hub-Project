@@ -35,7 +35,7 @@ export async function register(req, res) {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Check if email already exists
-    const existingUser = db.prepare('SELECT id FROM users WHERE email = ?').get(normalizedEmail);
+    const existingUser = (await db.prepare('SELECT id FROM users WHERE email = ?').get(normalizedEmail));
     if (existingUser) {
       return res.status(400).json({ status: 'error', message: 'Email is already registered.' });
     }
@@ -44,7 +44,7 @@ export async function register(req, res) {
     // If username is provided in body, validate it. Otherwise leave null for onboarding.
     let username = null;
     if (req.body.username && typeof req.body.username === 'string' && req.body.username.trim()) {
-      const v = validateUsername(req.body.username, null, db);
+      const v = (await validateUsername(req.body.username, null, db));
       if (!v.valid) {
         return res.status(400).json({ status: 'error', message: v.message });
       }
@@ -63,7 +63,7 @@ export async function register(req, res) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const result = stmt.run(
+    const result = (await stmt.run(
       username,
       fullName.trim(),
       normalizedEmail,
@@ -74,7 +74,7 @@ export async function register(req, res) {
       city ? String(city).trim() : null,
       state ? String(state).trim() : null,
       pincode ? String(pincode).trim() : null
-    );
+    ));
 
     const newUserId = result.lastInsertRowid;
 
@@ -119,11 +119,11 @@ export async function login(req, res) {
 
     const normalizedIdentifier = rawIdentifier.toLowerCase();
 
-    const user = db.prepare(`
+    const user = (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, password_hash, COALESCE(role, 'USER') AS role
       FROM users
       WHERE LOWER(email) = ? OR LOWER(username) = ?
-    `).get(normalizedIdentifier, normalizedIdentifier);
+    `).get(normalizedIdentifier, normalizedIdentifier));
 
     if (!user) {
       return res.status(401).json({ status: 'error', message: 'Invalid email or password.' });
@@ -166,7 +166,7 @@ export function getMe(req, res) {
  * Update authenticated user profile
  * PUT /api/auth/profile
  */
-export function updateProfile(req, res) {
+export async function updateProfile(req, res) {
   try {
     const userId = req.user.id;
     const { fullName, username, phone, age, address, city, state, pincode } = req.body;
@@ -181,24 +181,24 @@ export function updateProfile(req, res) {
 
     let newUsername = req.user.username;
     if (username !== undefined) {
-      const v = validateUsername(username, userId, db);
+      const v = (await validateUsername(username, userId, db));
       if (!v.valid) {
         return res.status(400).json({ status: 'error', message: v.message });
       }
       newUsername = v.cleanUsername;
     }
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE users
       SET full_name = ?, username = ?, phone = ?, age = ?, address = ?, city = ?, state = ?, pincode = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(newFullName, newUsername, newPhone, newAge, newAddress, newCity, newState, newPincode, userId);
+    `).run(newFullName, newUsername, newPhone, newAge, newAddress, newCity, newState, newPincode, userId));
 
-    const updated = db.prepare(`
+    const updated = (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, phone, age, address, city, state, pincode, role, avatar_url, created_at, updated_at
       FROM users
       WHERE id = ?
-    `).get(userId);
+    `).get(userId));
 
     return res.status(200).json(updated);
   } catch (err) {
@@ -211,7 +211,7 @@ export function updateProfile(req, res) {
  * Dedicated endpoint to set or update authenticated user's chosen username
  * PUT /api/auth/username
  */
-export function updateUsername(req, res) {
+export async function updateUsername(req, res) {
   try {
     const userId = req.user?.id || req.userId;
     if (!userId) {
@@ -219,22 +219,22 @@ export function updateUsername(req, res) {
     }
 
     const { username } = req.body || {};
-    const result = validateUsername(username, userId, db);
+    const result = (await validateUsername(username, userId, db));
     if (!result.valid) {
       return res.status(400).json({ status: 'error', message: result.message });
     }
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE users
       SET username = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(result.cleanUsername, userId);
+    `).run(result.cleanUsername, userId));
 
-    const updated = db.prepare(`
+    const updated = (await db.prepare(`
       SELECT id, username, full_name AS fullName, email, phone, age, address, city, state, pincode, role, avatar_url, created_at, updated_at
       FROM users
       WHERE id = ?
-    `).get(userId);
+    `).get(userId));
 
     return res.status(200).json({
       status: 'success',
@@ -251,11 +251,11 @@ export function updateUsername(req, res) {
  * Check username availability in real-time
  * GET /api/auth/check-username?username=...
  */
-export function checkUsernameAvailability(req, res) {
+export async function checkUsernameAvailability(req, res) {
   try {
     const { username } = req.query;
     const currentUserId = req.user?.id || req.userId || null;
-    const result = validateUsername(username, currentUserId, db);
+    const result = (await validateUsername(username, currentUserId, db));
 
     return res.status(200).json({
       status: 'success',

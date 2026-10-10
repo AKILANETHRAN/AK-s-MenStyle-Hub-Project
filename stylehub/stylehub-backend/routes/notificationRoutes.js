@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   getNotifications,
@@ -6,7 +6,7 @@ import {
   markAllAsRead
 } from '../controllers/notificationController.js';
 
-const router = express.Router();
+const router = Router();
 
 router.use(authMiddleware);
 

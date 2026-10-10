@@ -45,16 +45,16 @@ Address:
 Thank you for shopping with AK'S MEN STYLE.`
 };
 
-export function getMessageTemplates() {
-  const rows = db.prepare('SELECT channel, body FROM message_templates').all();
+export async function getMessageTemplates() {
+  const rows = (await db.prepare('SELECT channel, body FROM message_templates').all());
   return Object.fromEntries(MESSAGE_CHANNELS.map(channel => [
     channel,
     rows.find(row => row.channel === channel)?.body || DEFAULT_MESSAGE_TEMPLATES[channel] || ''
   ]));
 }
 
-export function getMessageTemplate(channel) {
-  return db.prepare('SELECT body FROM message_templates WHERE channel = ?').get(channel)?.body || '';
+export async function getMessageTemplate(channel) {
+  return (await db.prepare('SELECT body FROM message_templates WHERE channel = ?').get(channel))?.body || '';
 }
 
 export function validateMessageTemplate(body) {

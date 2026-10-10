@@ -16,9 +16,9 @@ export function normalizeUsernameInput(raw) {
  * Validates username string against AK'S MEN STYLE security and format policies
  * @param {string} username Raw username input
  * @param {number|null} currentUserId Optional ID of the requesting user to exclude from duplicate check
- * @param {object|null} db SQLite DB instance for case-insensitive uniqueness check
+ * @param {object|null} db PostgreSQL DB instance for case-insensitive uniqueness check
  */
-export function validateUsername(username, currentUserId = null, db = null) {
+export async function validateUsername(username, currentUserId = null, db = null) {
   if (username === undefined || username === null || username === '') {
     return { valid: false, message: 'Username is required.' };
   }
@@ -59,7 +59,7 @@ export function validateUsername(username, currentUserId = null, db = null) {
       query += ' AND id != ?';
       params.push(currentUserId);
     }
-    const existing = db.prepare(query).get(...params);
+    const existing = (await db.prepare(query).get(...params));
     if (existing) {
       return { valid: false, message: 'Username already exists.' };
     }

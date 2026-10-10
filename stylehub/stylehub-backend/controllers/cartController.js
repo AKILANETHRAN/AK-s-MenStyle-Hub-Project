@@ -5,11 +5,11 @@ import { validateProductSize } from '../utils/sizeHelper.js';
 /**
  * Helper to retrieve or create the active cart ID for a user
  */
-function getOrCreateUserCart(userId) {
-  let cart = db.prepare('SELECT id FROM cart WHERE user_id = ?').get(userId);
+async function getOrCreateUserCart(userId) {
+  let cart = (await db.prepare('SELECT id FROM cart WHERE user_id = ?').get(userId));
   if (!cart) {
-    db.prepare('INSERT OR IGNORE INTO cart (user_id) VALUES (?)').run(userId);
-    cart = db.prepare('SELECT id FROM cart WHERE user_id = ?').get(userId);
+    (await db.prepare("INSERT INTO cart (user_id) VALUES (?) ON CONFLICT DO NOTHING").run(userId));
+    cart = (await db.prepare('SELECT id FROM cart WHERE user_id = ?').get(userId));
   }
   return cart.id;
 }
@@ -17,10 +17,10 @@ function getOrCreateUserCart(userId) {
 /**
  * Helper to fetch and format the complete cart payload
  */
-function getFormattedCart(userId) {
-  const cartId = getOrCreateUserCart(userId);
+async function getFormattedCart(userId) {
+  const cartId = (await getOrCreateUserCart(userId));
 
-  const items = db.prepare(`
+  const items = (await db.prepare(`
     SELECT
       ci.id AS cartItemId,
       ci.product_id AS productId,
@@ -42,7 +42,7 @@ function getFormattedCart(userId) {
     JOIN products p ON ci.product_id = p.id
     WHERE ci.cart_id = ?
     ORDER BY ci.created_at ASC
-  `).all(cartId);
+  `).all(cartId));
 
   let totalItems = 0;
   let subtotal = 0;
@@ -95,9 +95,9 @@ function getFormattedCart(userId) {
 /**
  * GET /api/cart
  */
-export function getCart(req, res, next) {
+export async function getCart(req, res, next) {
   try {
-    const cart = getFormattedCart(req.userId);
+    const cart = (await getFormattedCart(req.userId));
     return res.status(200).json({
       status: 'success',
       data: cart
@@ -111,7 +111,7 @@ export function getCart(req, res, next) {
  * POST /api/cart/items
  * Body: { productId: number, quantity?: number, size?: string }
  */
-export function addToCart(req, res, next) {
+export async function addToCart(req, res, next) {
   try {
     const { productId, quantity = 1, size } = req.body || {};
     const parsedProductId = parseInt(productId, 10);
@@ -132,7 +132,7 @@ export function addToCart(req, res, next) {
     }
 
     // 1. Verify product exists
-    const product = db.prepare('SELECT id, name, stock, status, price, category, cloth_type, vton_garment_category FROM products WHERE id = ?').get(parsedProductId);
+    const product = (await db.prepare('SELECT id, name, stock, status, price, category, cloth_type, vton_garment_category FROM products WHERE id = ?').get(parsedProductId));
     if (!product) {
       return res.status(404).json({
         status: 'error',
@@ -158,23 +158,23 @@ export function addToCart(req, res, next) {
       });
     }
 
-    const cartId = getOrCreateUserCart(req.userId);
+    const cartId = (await getOrCreateUserCart(req.userId));
 
     // 4. Check existing item variant in cart
     let existing;
     if (validatedSize) {
-      existing = db.prepare('SELECT id, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size = ?').get(cartId, parsedProductId, validatedSize);
+      existing = (await db.prepare('SELECT id, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size = ?').get(cartId, parsedProductId, validatedSize));
     } else {
-      existing = db.prepare('SELECT id, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size IS NULL').get(cartId, parsedProductId);
+      existing = (await db.prepare('SELECT id, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size IS NULL').get(cartId, parsedProductId));
     }
 
     const existingQty = existing ? existing.quantity : 0;
     const targetQty = existingQty + parsedQuantity;
 
     // Validate quantity against product stock across all variants of this product in cart
-    const otherVariantsQty = db.prepare(
+    const otherVariantsQty = (await db.prepare(
       'SELECT COALESCE(SUM(quantity), 0) AS total FROM cart_items WHERE cart_id = ? AND product_id = ? AND id != ?'
-    ).get(cartId, parsedProductId, existing ? existing.id : 0).total;
+    ).get(cartId, parsedProductId, existing ? existing.id : 0)).total;
 
     if ((otherVariantsQty + targetQty) > product.stock) {
       return res.status(400).json({
@@ -185,19 +185,19 @@ export function addToCart(req, res, next) {
 
     // 5. Insert or update atomically
     if (existing) {
-      db.prepare(`
+      (await db.prepare(`
         UPDATE cart_items
         SET quantity = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `).run(targetQty, existing.id);
+      `).run(targetQty, existing.id));
     } else {
-      db.prepare(`
+      (await db.prepare(`
         INSERT INTO cart_items (cart_id, product_id, size, quantity, updated_at)
         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-      `).run(cartId, parsedProductId, validatedSize, targetQty);
+      `).run(cartId, parsedProductId, validatedSize, targetQty));
     }
 
-    const updatedCart = getFormattedCart(req.userId);
+    const updatedCart = (await getFormattedCart(req.userId));
     return res.status(200).json({
       status: 'success',
       message: `Added "${product.name}"${validatedSize ? ` (${validatedSize})` : ''} to cart.`,
@@ -212,7 +212,7 @@ export function addToCart(req, res, next) {
  * PUT /api/cart/items/:idOrProductId
  * Body: { quantity: number, size?: string }
  */
-export function updateCartItemQuantity(req, res, next) {
+export async function updateCartItemQuantity(req, res, next) {
   try {
     const rawId = req.params.productId;
     const parsedId = parseInt(rawId, 10);
@@ -233,19 +233,19 @@ export function updateCartItemQuantity(req, res, next) {
       });
     }
 
-    const cartId = getOrCreateUserCart(req.userId);
+    const cartId = (await getOrCreateUserCart(req.userId));
 
     // 1. Find cart item: first try matching cart_items.id directly
-    let item = db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE id = ? AND cart_id = ?').get(parsedId, cartId);
+    let item = (await db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE id = ? AND cart_id = ?').get(parsedId, cartId));
 
     // 2. If not found by primary key, try matching by product_id (+ optional size)
     if (!item) {
       const requestedSize = (size || req.query?.size || '').toString().trim().toUpperCase() || null;
       if (requestedSize) {
-        item = db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size = ?').get(cartId, parsedId, requestedSize);
+        item = (await db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size = ?').get(cartId, parsedId, requestedSize));
       } else {
-        item = db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size IS NULL').get(cartId, parsedId)
-            || db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? ORDER BY id ASC LIMIT 1').get(cartId, parsedId);
+        item = (await db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? AND size IS NULL').get(cartId, parsedId))
+            || (await db.prepare('SELECT id, product_id, size, quantity FROM cart_items WHERE cart_id = ? AND product_id = ? ORDER BY id ASC LIMIT 1').get(cartId, parsedId));
       }
     }
 
@@ -256,7 +256,7 @@ export function updateCartItemQuantity(req, res, next) {
       });
     }
 
-    const product = db.prepare('SELECT id, name, stock, status FROM products WHERE id = ?').get(item.product_id);
+    const product = (await db.prepare('SELECT id, name, stock, status FROM products WHERE id = ?').get(item.product_id));
     if (!product) {
       return res.status(404).json({
         status: 'error',
@@ -265,9 +265,9 @@ export function updateCartItemQuantity(req, res, next) {
     }
 
     // Validate against current product stock across other cart variants
-    const otherVariantsQty = db.prepare(
+    const otherVariantsQty = (await db.prepare(
       'SELECT COALESCE(SUM(quantity), 0) AS total FROM cart_items WHERE cart_id = ? AND product_id = ? AND id != ?'
-    ).get(cartId, item.product_id, item.id).total;
+    ).get(cartId, item.product_id, item.id)).total;
 
     if ((otherVariantsQty + parsedQuantity) > product.stock) {
       return res.status(400).json({
@@ -276,13 +276,13 @@ export function updateCartItemQuantity(req, res, next) {
       });
     }
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE cart_items
       SET quantity = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(parsedQuantity, item.id);
+    `).run(parsedQuantity, item.id));
 
-    const updatedCart = getFormattedCart(req.userId);
+    const updatedCart = (await getFormattedCart(req.userId));
     return res.status(200).json({
       status: 'success',
       message: `Updated quantity for "${product.name}".`,
@@ -296,7 +296,7 @@ export function updateCartItemQuantity(req, res, next) {
 /**
  * DELETE /api/cart/items/:idOrProductId
  */
-export function removeCartItem(req, res, next) {
+export async function removeCartItem(req, res, next) {
   try {
     const rawId = req.params.productId;
     const parsedId = parseInt(rawId, 10);
@@ -308,21 +308,21 @@ export function removeCartItem(req, res, next) {
       });
     }
 
-    const cartId = getOrCreateUserCart(req.userId);
+    const cartId = (await getOrCreateUserCart(req.userId));
     const requestedSize = (req.query?.size || req.body?.size || '').toString().trim().toUpperCase() || null;
 
     // Check if parsedId is cart_items.id
-    const itemById = db.prepare('SELECT id FROM cart_items WHERE id = ? AND cart_id = ?').get(parsedId, cartId);
+    const itemById = (await db.prepare('SELECT id FROM cart_items WHERE id = ? AND cart_id = ?').get(parsedId, cartId));
     if (itemById) {
-      db.prepare('DELETE FROM cart_items WHERE id = ?').run(itemById.id);
+      (await db.prepare('DELETE FROM cart_items WHERE id = ?').run(itemById.id));
     } else if (requestedSize) {
-      db.prepare('DELETE FROM cart_items WHERE cart_id = ? AND product_id = ? AND size = ?').run(cartId, parsedId, requestedSize);
+      (await db.prepare('DELETE FROM cart_items WHERE cart_id = ? AND product_id = ? AND size = ?').run(cartId, parsedId, requestedSize));
     } else {
       // If no size specified, delete matching product_id item(s)
-      db.prepare('DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?').run(cartId, parsedId);
+      (await db.prepare('DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?').run(cartId, parsedId));
     }
 
-    const updatedCart = getFormattedCart(req.userId);
+    const updatedCart = (await getFormattedCart(req.userId));
     return res.status(200).json({
       status: 'success',
       message: 'Item removed from cart.',
@@ -336,12 +336,12 @@ export function removeCartItem(req, res, next) {
 /**
  * DELETE /api/cart
  */
-export function clearCart(req, res, next) {
+export async function clearCart(req, res, next) {
   try {
-    const cartId = getOrCreateUserCart(req.userId);
-    db.prepare('DELETE FROM cart_items WHERE cart_id = ?').run(cartId);
+    const cartId = (await getOrCreateUserCart(req.userId));
+    (await db.prepare('DELETE FROM cart_items WHERE cart_id = ?').run(cartId));
 
-    const updatedCart = getFormattedCart(req.userId);
+    const updatedCart = (await getFormattedCart(req.userId));
     return res.status(200).json({
       status: 'success',
       message: 'Cart cleared successfully.',

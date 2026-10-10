@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { register, login, getMe, updateProfile, updateUsername, checkUsernameAvailability } from '../controllers/authController.js';
 import { googleAuth, getGoogleConfig, getGoogleAuthUrl, handleGoogleCallback, initiateGoogleAuth } from '../controllers/googleAuthController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';

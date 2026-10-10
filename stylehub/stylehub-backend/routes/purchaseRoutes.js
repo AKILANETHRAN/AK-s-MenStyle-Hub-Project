@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import db from '../config/database.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { dispatchPurchaseCommunications } from '../services/communicationService.js';
@@ -6,6 +6,7 @@ import { calculateCartReward } from '../services/cartRewardService.js';
 import { sendPurchaseSuccessEmail } from '../services/emailService.js';
 import { validateProductSize } from '../utils/sizeHelper.js';
 import { parsePagination, paginationMeta } from '../utils/pagination.js';
+import { reserveStock } from '../services/stockService.js';
 
 const router = Router();
 
@@ -58,7 +59,7 @@ router.post('/product', authMiddleware, async (req, res) => {
     }
 
     // 2. Fetch Product & Validate Stock
-    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(prodId);
+    const product = (await db.prepare('SELECT * FROM products WHERE id = ?').get(prodId));
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found.' });
     }
@@ -93,18 +94,12 @@ router.post('/product', authMiddleware, async (req, res) => {
     const deliveryPincode = user.pincode;
 
     // 4. Atomic Transaction: Deduct stock + Create Purchase + Create Purchase Item
-    const executePurchase = db.transaction(() => {
+    const executePurchase = db.transaction(async () => {
       // Reduce product stock
-      const newStock = product.stock - qty;
-      const newStatus = newStock <= 0 ? 'SOLD_OUT' : 'IN_STOCK';
-      db.prepare(`
-        UPDATE products 
-        SET stock = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).run(newStock, newStatus, prodId);
+      await reserveStock(db, prodId, qty);
 
       // Insert Purchase record with snapshot of delivery destination
-      const purchaseInsert = db.prepare(`
+      const purchaseInsert = (await db.prepare(`
         INSERT INTO purchases (
           user_id, purchase_type, total_amount,
           delivery_name, delivery_phone, delivery_address, delivery_city, delivery_state, delivery_pincode
@@ -112,21 +107,21 @@ router.post('/product', authMiddleware, async (req, res) => {
       `).run(
         userId, totalAmount,
         deliveryName, deliveryPhone, deliveryAddress, deliveryCity, deliveryState, deliveryPincode
-      );
+      ));
 
       const purchaseId = purchaseInsert.lastInsertRowid;
 
       // Insert Purchase Item with unit price snapshot and size
-      db.prepare(`
+      (await db.prepare(`
         INSERT INTO purchase_items (
           purchase_id, product_id, quantity, unit_price, size
         ) VALUES (?, ?, ?, ?, ?)
-      `).run(purchaseId, prodId, qty, unitPrice, validatedSize);
+      `).run(purchaseId, prodId, qty, unitPrice, validatedSize));
 
       return purchaseId;
     });
 
-    const purchaseId = executePurchase();
+    const purchaseId = (await executePurchase());
 
     // 5. Asynchronous Communication Dispatch (Non-fatal, safe post-commit)
     let notifications = {
@@ -171,6 +166,7 @@ router.post('/product', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('Error processing single product purchase:', err);
+    if (err.code === 'OUT_OF_STOCK') return res.status(409).json({ status: 'error', code: err.code, message: err.message });
     return res.status(500).json({ status: 'error', message: 'Failed to process purchase.' });
   }
 });
@@ -234,7 +230,7 @@ router.post('/combo', authMiddleware, async (req, res) => {
         return res.status(400).json({ status: 'error', message: `Invalid product ID: ${entry.productId}` });
       }
 
-      const product = db.prepare('SELECT * FROM products WHERE id = ?').get(entry.productId);
+      const product = (await db.prepare('SELECT * FROM products WHERE id = ?').get(entry.productId));
       if (!product) {
         return res.status(404).json({ status: 'error', message: `Product with ID ${entry.productId} not found.` });
       }
@@ -280,20 +276,14 @@ router.post('/combo', authMiddleware, async (req, res) => {
     const deliveryPincode = user.pincode;
 
     // 3. Atomic Transaction: Deduct stock for all items + create purchase + create items
-    const executeComboPurchase = db.transaction(() => {
+    const executeComboPurchase = db.transaction(async () => {
       // Deduct stock for each item
       for (const item of resolvedItems) {
-        const newStock = item.product.stock - item.quantity;
-        const newStatus = newStock <= 0 ? 'SOLD_OUT' : 'IN_STOCK';
-        db.prepare(`
-          UPDATE products 
-          SET stock = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
-        `).run(newStock, newStatus, item.product.id);
+        await reserveStock(db, item.product.id, item.quantity);
       }
 
       // Create purchase header
-      const purchaseInsert = db.prepare(`
+      const purchaseInsert = (await db.prepare(`
         INSERT INTO purchases (
           user_id, purchase_type, total_amount,
           delivery_name, delivery_phone, delivery_address, delivery_city, delivery_state, delivery_pincode
@@ -301,7 +291,7 @@ router.post('/combo', authMiddleware, async (req, res) => {
       `).run(
         userId, grandTotal,
         deliveryName, deliveryPhone, deliveryAddress, deliveryCity, deliveryState, deliveryPincode
-      );
+      ));
 
       const purchaseId = purchaseInsert.lastInsertRowid;
 
@@ -313,13 +303,13 @@ router.post('/combo', authMiddleware, async (req, res) => {
       `);
 
       for (const item of resolvedItems) {
-        insertItemStmt.run(purchaseId, item.product.id, item.quantity, item.unitPrice, item.size);
+        (await insertItemStmt.run(purchaseId, item.product.id, item.quantity, item.unitPrice, item.size));
       }
 
       return purchaseId;
     });
 
-    const purchaseId = executeComboPurchase();
+    const purchaseId = (await executeComboPurchase());
 
     // 4. Asynchronous Communication Dispatch (Non-fatal, safe post-commit)
     let notifications = {
@@ -362,6 +352,7 @@ router.post('/combo', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('Error processing combo purchase:', err);
+    if (err.code === 'OUT_OF_STOCK') return res.status(409).json({ status: 'error', code: err.code, message: err.message });
     return res.status(500).json({ status: 'error', message: 'Failed to process combo purchase.' });
   }
 });
@@ -401,17 +392,17 @@ router.post('/cart', authMiddleware, async (req, res) => {
     }
 
     // 2. Fetch User Cart
-    const cart = db.prepare('SELECT id FROM cart WHERE user_id = ?').get(userId);
+    const cart = (await db.prepare('SELECT id FROM cart WHERE user_id = ?').get(userId));
     if (!cart) {
       return res.status(400).json({ status: 'error', message: 'Your shopping cart is currently empty.' });
     }
 
-    const cartItems = db.prepare(`
+    const cartItems = (await db.prepare(`
       SELECT ci.product_id, ci.size, ci.quantity, p.name, p.price, p.stock, p.status, p.image, p.cloth_type
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       WHERE ci.cart_id = ?
-    `).all(cart.id);
+    `).all(cart.id));
 
     if (!cartItems.length) {
       return res.status(400).json({ status: 'error', message: 'Your shopping cart is currently empty.' });
@@ -453,21 +444,14 @@ router.post('/cart', authMiddleware, async (req, res) => {
     const purchaseType = resolvedItems.length > 1 ? 'COMBO' : 'SINGLE';
 
     // 5. Atomic Transaction: Deduct stock, insert purchase + items, clear cart
-    const executeCartPurchase = db.transaction(() => {
+    const executeCartPurchase = db.transaction(async () => {
       // Deduct stock for each cart item
       for (const it of resolvedItems) {
-        const currentProd = db.prepare('SELECT stock FROM products WHERE id = ?').get(it.productId);
-        const newStock = currentProd.stock - it.quantity;
-        const newStatus = newStock <= 0 ? 'SOLD_OUT' : 'IN_STOCK';
-        db.prepare(`
-          UPDATE products
-          SET stock = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
-        `).run(newStock, newStatus, it.productId);
+        await reserveStock(db, it.productId, it.quantity);
       }
 
       // Create purchase header
-      const purchaseInsert = db.prepare(`
+      const purchaseInsert = (await db.prepare(`
         INSERT INTO purchases (
           user_id, purchase_type, total_amount, subtotal, cart_reward_percent, cart_reward_amount,
           delivery_name, delivery_phone, delivery_address, delivery_city, delivery_state, delivery_pincode
@@ -475,7 +459,7 @@ router.post('/cart', authMiddleware, async (req, res) => {
       `).run(
         userId, purchaseType, grandTotal, subtotal, reward.percentage, reward.rewardAmount,
         deliveryName, deliveryPhone, deliveryAddress, deliveryCity, deliveryState, deliveryPincode
-      );
+      ));
 
       const purchaseId = purchaseInsert.lastInsertRowid;
 
@@ -487,16 +471,16 @@ router.post('/cart', authMiddleware, async (req, res) => {
       `);
 
       for (const it of resolvedItems) {
-        insertItemStmt.run(purchaseId, it.productId, it.quantity, it.unitPrice, it.size);
+        (await insertItemStmt.run(purchaseId, it.productId, it.quantity, it.unitPrice, it.size));
       }
 
       // Clear user's cart items
-      db.prepare('DELETE FROM cart_items WHERE cart_id = ?').run(cart.id);
+      (await db.prepare('DELETE FROM cart_items WHERE cart_id = ?').run(cart.id));
 
       return purchaseId;
     });
 
-    const purchaseId = executeCartPurchase();
+    const purchaseId = (await executeCartPurchase());
 
     // 6. Asynchronous Notification Dispatch
     let notifications = {
@@ -543,6 +527,7 @@ router.post('/cart', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('Error processing cart purchase:', err);
+    if (err.code === 'OUT_OF_STOCK') return res.status(409).json({ status: 'error', code: err.code, message: err.message });
     return res.status(500).json({ status: 'error', message: 'Failed to process cart purchase.' });
   }
 });
@@ -551,13 +536,13 @@ router.post('/cart', authMiddleware, async (req, res) => {
  * GET /api/purchases
  * Return authenticated user's purchase history.
  */
-router.get('/', authMiddleware, (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const pagination = parsePagination(req.query, 10);
     if (pagination?.error) return res.status(400).json({ status: 'error', message: pagination.error });
     const total = pagination
-      ? db.prepare('SELECT COUNT(*) AS total FROM purchases WHERE user_id = ?').get(userId).total
+      ? (await db.prepare('SELECT COUNT(*) AS total FROM purchases WHERE user_id = ?').get(userId)).total
       : null;
 
     const query = `
@@ -566,9 +551,9 @@ router.get('/', authMiddleware, (req, res) => {
       ORDER BY created_at DESC, id DESC
       ${pagination ? 'LIMIT ? OFFSET ?' : ''}
     `;
-    const purchases = db.prepare(query).all(...(pagination
+    const purchases = (await db.prepare(query).all(...(pagination
       ? [userId, pagination.pageSize, pagination.offset]
-      : [userId]));
+      : [userId])));
 
     const itemsStmt = db.prepare(`
       SELECT pi.*, p.name AS product_name, p.image AS product_image, p.category, p.cloth_type, p.brand
@@ -577,10 +562,10 @@ router.get('/', authMiddleware, (req, res) => {
       WHERE pi.purchase_id = ?
     `);
 
-    const result = purchases.map(p => ({
+    const result = (await Promise.all(purchases.map(async p => ({
       ...p,
-      items: itemsStmt.all(p.id)
-    }));
+      items: (await itemsStmt.all(p.id))
+    }))));
 
     return res.status(200).json({
       status: 'success',
@@ -597,7 +582,7 @@ router.get('/', authMiddleware, (req, res) => {
  * GET /api/purchases/:id
  * Return purchase details with strict user isolation.
  */
-router.get('/:id', authMiddleware, (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const purchaseId = parseInt(req.params.id, 10);
@@ -606,7 +591,7 @@ router.get('/:id', authMiddleware, (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Invalid purchase ID.' });
     }
 
-    const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId);
+    const purchase = (await db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId));
     if (!purchase) {
       return res.status(404).json({ status: 'error', message: 'Purchase not found.' });
     }
@@ -619,12 +604,12 @@ router.get('/:id', authMiddleware, (req, res) => {
       });
     }
 
-    const items = db.prepare(`
+    const items = (await db.prepare(`
       SELECT pi.*, p.name AS product_name, p.image AS product_image, p.category, p.cloth_type, p.brand
       FROM purchase_items pi
       JOIN products p ON pi.product_id = p.id
       WHERE pi.purchase_id = ?
-    `).all(purchase.id);
+    `).all(purchase.id));
 
     return res.status(200).json({
       status: 'success',
@@ -654,7 +639,7 @@ router.post('/:id/resend-email', authMiddleware, async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Invalid purchase ID.' });
     }
 
-    const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId);
+    const purchase = (await db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId));
     if (!purchase) {
       return res.status(404).json({ status: 'error', message: 'Purchase not found.' });
     }

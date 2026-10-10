@@ -4,11 +4,11 @@ import db from '../config/database.js';
  * GET /api/friends
  * Returns all accepted friends of the authenticated user
  */
-export function getFriends(req, res, next) {
+export async function getFriends(req, res, next) {
   try {
     const userId = req.userId;
 
-    const rows = db.prepare(`
+    const rows = (await db.prepare(`
       SELECT
         f.id AS friendshipId,
         CASE WHEN f.requester_id = ? THEN f.receiver_id ELSE f.requester_id END AS userId,
@@ -19,7 +19,7 @@ export function getFriends(req, res, next) {
       JOIN users u ON u.id = (CASE WHEN f.requester_id = ? THEN f.receiver_id ELSE f.requester_id END)
       WHERE (f.requester_id = ? OR f.receiver_id = ?) AND f.status = 'ACCEPTED'
       ORDER BY u.username ASC
-    `).all(userId, userId, userId, userId);
+    `).all(userId, userId, userId, userId));
 
     return res.status(200).json({
       status: 'success',
@@ -37,7 +37,7 @@ export function getFriends(req, res, next) {
  * GET /api/friends/search?username=...
  * Search users by username (public profiles only)
  */
-export function searchUsers(req, res, next) {
+export async function searchUsers(req, res, next) {
   try {
     const userId = req.userId;
     const rawQuery = req.query.username || req.query.query || req.query.q || '';
@@ -51,7 +51,7 @@ export function searchUsers(req, res, next) {
       });
     }
 
-    const matches = db.prepare(`
+    const matches = (await db.prepare(`
       SELECT
         u.id,
         u.username,
@@ -64,9 +64,9 @@ export function searchUsers(req, res, next) {
         (f.requester_id = ? AND f.receiver_id = u.id) OR
         (f.receiver_id = ? AND f.requester_id = u.id)
       )
-      WHERE u.id != ? AND u.username IS NOT NULL AND u.username != '' AND u.username LIKE ? COLLATE NOCASE
+      WHERE u.id != ? AND u.username IS NOT NULL AND u.username != '' AND u.username ILIKE ?
       LIMIT 20
-    `).all(userId, userId, userId, `%${cleanQuery}%`);
+    `).all(userId, userId, userId, `%${cleanQuery}%`));
 
     const users = matches.map((m) => {
       let relationship = 'NONE';
@@ -101,11 +101,11 @@ export function searchUsers(req, res, next) {
  * GET /api/friends/requests
  * Returns incoming and outgoing pending friend requests
  */
-export function getFriendRequests(req, res, next) {
+export async function getFriendRequests(req, res, next) {
   try {
     const userId = req.userId;
 
-    const incoming = db.prepare(`
+    const incoming = (await db.prepare(`
       SELECT
         f.id AS friendshipId,
         u.id AS userId,
@@ -116,9 +116,9 @@ export function getFriendRequests(req, res, next) {
       JOIN users u ON u.id = f.requester_id
       WHERE f.receiver_id = ? AND f.status = 'PENDING'
       ORDER BY f.created_at DESC
-    `).all(userId);
+    `).all(userId));
 
-    const outgoing = db.prepare(`
+    const outgoing = (await db.prepare(`
       SELECT
         f.id AS friendshipId,
         u.id AS userId,
@@ -129,7 +129,7 @@ export function getFriendRequests(req, res, next) {
       JOIN users u ON u.id = f.receiver_id
       WHERE f.requester_id = ? AND f.status = 'PENDING'
       ORDER BY f.created_at DESC
-    `).all(userId);
+    `).all(userId));
 
     return res.status(200).json({
       status: 'success',
@@ -149,17 +149,17 @@ export function getFriendRequests(req, res, next) {
  * POST /api/friends/request
  * Body: { receiverId?: number, username?: string }
  */
-export function sendFriendRequest(req, res, next) {
+export async function sendFriendRequest(req, res, next) {
   try {
     const userId = req.userId;
     let { receiverId, username } = req.body;
 
     let targetUser = null;
     if (receiverId) {
-      targetUser = db.prepare('SELECT id, username, full_name AS fullName FROM users WHERE id = ?').get(receiverId);
+      targetUser = (await db.prepare('SELECT id, username, full_name AS fullName FROM users WHERE id = ?').get(receiverId));
     } else if (username) {
       const cleanName = username.trim().replace(/^@/, '');
-      targetUser = db.prepare('SELECT id, username, full_name AS fullName FROM users WHERE username = ? COLLATE NOCASE').get(cleanName);
+      targetUser = (await db.prepare("SELECT id, username, full_name AS fullName FROM users WHERE LOWER(username) = LOWER(?)").get(cleanName));
     }
 
     if (!targetUser) {
@@ -179,13 +179,13 @@ export function sendFriendRequest(req, res, next) {
     const targetId = targetUser.id;
 
     // Check existing relationship
-    const existing = db.prepare(`
+    const existing = (await db.prepare(`
       SELECT id, requester_id, receiver_id, status
       FROM friendships
       WHERE (requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)
-    `).get(userId, targetId, targetId, userId);
+    `).get(userId, targetId, targetId, userId));
 
-    const currentUser = db.prepare('SELECT username FROM users WHERE id = ?').get(userId);
+    const currentUser = (await db.prepare('SELECT username FROM users WHERE id = ?').get(userId));
 
     if (existing) {
       if (existing.status === 'ACCEPTED') {
@@ -203,17 +203,17 @@ export function sendFriendRequest(req, res, next) {
           });
         } else {
           // Target user already sent a pending request to current user -> Automatically accept
-          db.prepare(`
+          (await db.prepare(`
             UPDATE friendships
             SET status = 'ACCEPTED', updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-          `).run(existing.id);
+          `).run(existing.id));
 
           // Notification to the other user
-          db.prepare(`
+          (await db.prepare(`
             INSERT INTO notifications (user_id, type, title, message, related_id)
             VALUES (?, 'FRIEND_ACCEPTED', 'Friend Request Accepted', ?, ?)
-          `).run(targetId, `@${currentUser.username} accepted your friend request.`, existing.id);
+          `).run(targetId, `@${currentUser.username} accepted your friend request.`, existing.id));
 
           return res.status(200).json({
             status: 'success',
@@ -224,16 +224,16 @@ export function sendFriendRequest(req, res, next) {
       }
 
       // If REJECTED -> Reset to PENDING
-      db.prepare(`
+      (await db.prepare(`
         UPDATE friendships
         SET requester_id = ?, receiver_id = ?, status = 'PENDING', updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `).run(userId, targetId, existing.id);
+      `).run(userId, targetId, existing.id));
 
-      db.prepare(`
+      (await db.prepare(`
         INSERT INTO notifications (user_id, type, title, message, related_id)
         VALUES (?, 'FRIEND_REQUEST', 'New Friend Request', ?, ?)
-      `).run(targetId, `@${currentUser.username} sent you a friend request.`, existing.id);
+      `).run(targetId, `@${currentUser.username} sent you a friend request.`, existing.id));
 
       return res.status(200).json({
         status: 'success',
@@ -243,15 +243,15 @@ export function sendFriendRequest(req, res, next) {
     }
 
     // New Request
-    const result = db.prepare(`
+    const result = (await db.prepare(`
       INSERT INTO friendships (requester_id, receiver_id, status)
       VALUES (?, ?, 'PENDING')
-    `).run(userId, targetId);
+    `).run(userId, targetId));
 
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO notifications (user_id, type, title, message, related_id)
       VALUES (?, 'FRIEND_REQUEST', 'New Friend Request', ?, ?)
-    `).run(targetId, `@${currentUser.username} sent you a friend request.`, result.lastInsertRowid);
+    `).run(targetId, `@${currentUser.username} sent you a friend request.`, result.lastInsertRowid));
 
     return res.status(201).json({
       status: 'success',
@@ -266,17 +266,17 @@ export function sendFriendRequest(req, res, next) {
 /**
  * POST /api/friends/:id/accept
  */
-export function acceptFriendRequest(req, res, next) {
+export async function acceptFriendRequest(req, res, next) {
   try {
     const userId = req.userId;
     const friendshipId = parseInt(req.params.id, 10);
 
-    const friendship = db.prepare(`
+    const friendship = (await db.prepare(`
       SELECT f.id, f.requester_id, f.receiver_id, f.status, u.username AS requesterName
       FROM friendships f
       JOIN users u ON u.id = f.requester_id
       WHERE f.id = ?
-    `).get(friendshipId);
+    `).get(friendshipId));
 
     if (!friendship) {
       return res.status(404).json({
@@ -299,19 +299,19 @@ export function acceptFriendRequest(req, res, next) {
       });
     }
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE friendships
       SET status = 'ACCEPTED', updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(friendshipId);
+    `).run(friendshipId));
 
-    const currentUser = db.prepare('SELECT username FROM users WHERE id = ?').get(userId);
+    const currentUser = (await db.prepare('SELECT username FROM users WHERE id = ?').get(userId));
 
     // Notify requester
-    db.prepare(`
+    (await db.prepare(`
       INSERT INTO notifications (user_id, type, title, message, related_id)
       VALUES (?, 'FRIEND_ACCEPTED', 'Friend Request Accepted', ?, ?)
-    `).run(friendship.requester_id, `@${currentUser.username} accepted your friend request.`, friendshipId);
+    `).run(friendship.requester_id, `@${currentUser.username} accepted your friend request.`, friendshipId));
 
     return res.status(200).json({
       status: 'success',
@@ -326,12 +326,12 @@ export function acceptFriendRequest(req, res, next) {
 /**
  * POST /api/friends/:id/reject
  */
-export function rejectFriendRequest(req, res, next) {
+export async function rejectFriendRequest(req, res, next) {
   try {
     const userId = req.userId;
     const friendshipId = parseInt(req.params.id, 10);
 
-    const friendship = db.prepare('SELECT id, receiver_id FROM friendships WHERE id = ?').get(friendshipId);
+    const friendship = (await db.prepare('SELECT id, receiver_id FROM friendships WHERE id = ?').get(friendshipId));
     if (!friendship) {
       return res.status(404).json({
         status: 'error',
@@ -346,11 +346,11 @@ export function rejectFriendRequest(req, res, next) {
       });
     }
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE friendships
       SET status = 'REJECTED', updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(friendshipId);
+    `).run(friendshipId));
 
     return res.status(200).json({
       status: 'success',
@@ -365,16 +365,16 @@ export function rejectFriendRequest(req, res, next) {
 /**
  * DELETE /api/friends/:id
  */
-export function removeFriend(req, res, next) {
+export async function removeFriend(req, res, next) {
   try {
     const userId = req.userId;
     const friendshipId = parseInt(req.params.id, 10);
 
-    const friendship = db.prepare(`
+    const friendship = (await db.prepare(`
       SELECT id, requester_id, receiver_id
       FROM friendships
       WHERE id = ? AND (requester_id = ? OR receiver_id = ?)
-    `).get(friendshipId, userId, userId);
+    `).get(friendshipId, userId, userId));
 
     if (!friendship) {
       return res.status(404).json({
@@ -383,7 +383,7 @@ export function removeFriend(req, res, next) {
       });
     }
 
-    db.prepare('DELETE FROM friendships WHERE id = ?').run(friendshipId);
+    (await db.prepare('DELETE FROM friendships WHERE id = ?').run(friendshipId));
 
     return res.status(200).json({
       status: 'success',

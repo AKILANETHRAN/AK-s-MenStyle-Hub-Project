@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from '../utils/asyncRouter.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   getWishlist,
@@ -7,7 +7,7 @@ import {
   clearWishlist
 } from '../controllers/wishlistController.js';
 
-const router = express.Router();
+const router = Router();
 
 // Enforce JWT authentication on all wishlist endpoints
 router.use(authMiddleware);

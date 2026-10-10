@@ -3,23 +3,23 @@ import db from '../config/database.js';
 /**
  * GET /api/notifications
  */
-export function getNotifications(req, res, next) {
+export async function getNotifications(req, res, next) {
   try {
     const userId = req.userId;
 
-    const notifications = db.prepare(`
+    const notifications = (await db.prepare(`
       SELECT id, type, title, message, related_id AS relatedId, is_read AS isRead, created_at AS createdAt
       FROM notifications
       WHERE user_id = ?
       ORDER BY created_at DESC
       LIMIT 50
-    `).all(userId);
+    `).all(userId));
 
-    const unreadCount = db.prepare(`
+    const unreadCount = (await db.prepare(`
       SELECT COUNT(*) AS count
       FROM notifications
       WHERE user_id = ? AND is_read = 0
-    `).get(userId).count;
+    `).get(userId)).count;
 
     return res.status(200).json({
       status: 'success',
@@ -36,16 +36,16 @@ export function getNotifications(req, res, next) {
 /**
  * PUT /api/notifications/:id/read
  */
-export function markAsRead(req, res, next) {
+export async function markAsRead(req, res, next) {
   try {
     const userId = req.userId;
     const notifId = parseInt(req.params.id, 10);
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE notifications
       SET is_read = 1
       WHERE id = ? AND user_id = ?
-    `).run(notifId, userId);
+    `).run(notifId, userId));
 
     return res.status(200).json({
       status: 'success',
@@ -59,15 +59,15 @@ export function markAsRead(req, res, next) {
 /**
  * PUT /api/notifications/read-all
  */
-export function markAllAsRead(req, res, next) {
+export async function markAllAsRead(req, res, next) {
   try {
     const userId = req.userId;
 
-    db.prepare(`
+    (await db.prepare(`
       UPDATE notifications
       SET is_read = 1
       WHERE user_id = ?
-    `).run(userId);
+    `).run(userId));
 
     return res.status(200).json({
       status: 'success',

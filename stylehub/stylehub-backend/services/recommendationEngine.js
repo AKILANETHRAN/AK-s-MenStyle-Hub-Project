@@ -1,6 +1,6 @@
 /**
  * AK's MEN STYLE — Rule-Based Outfit Recommendation Engine (Phase 8 Refined)
- * 
+ *
  * Rules:
  * 1. ONLY Tops (Shirts, T-Shirts, Hoodies, Jackets; IDs 1-20, 31-50) and
  *    Bottoms (Pants & Trousers; IDs 21-30) are eligible for "COMPLETE THE LOOK".
@@ -123,12 +123,12 @@ export function isEligibleForRecommendation(product) {
 
 /**
  * Generates or retrieves a unique, rule-based outfit recommendation for an anchor product.
- * @param {number|string} productId 
- * @param {import('better-sqlite3').Database} db 
+ * @param {number|string} productId
+ * @param {object} db
  * @returns {object}
  */
-export function getRecommendationsForProduct(productId, db) {
-  const anchor = db.prepare('SELECT * FROM products WHERE id = ?').get(Number(productId));
+export async function getRecommendationsForProduct(productId, db) {
+  const anchor = (await db.prepare('SELECT * FROM products WHERE id = ?').get(Number(productId)));
   if (!anchor) return null;
 
   // 1. Eligibility Check: ONLY Tops and Bottoms
@@ -142,13 +142,13 @@ export function getRecommendationsForProduct(productId, db) {
   const isTop = anchor.vton_garment_category === 'tops';
 
   // 2. Check if a valid, persisted recommendation already exists in outfit_recommendations
-  const existingRows = db.prepare(`
+  const existingRows = (await db.prepare(`
     SELECT r.*, p.name AS product_name, p.image AS product_image, p.price, p.original_price, p.discount_percent, p.stock, p.status, p.category, p.cloth_type, p.color, p.brand
     FROM outfit_recommendations r
     JOIN products p ON r.recommended_product_id = p.id
     WHERE r.base_product_id = ?
     ORDER BY r.id ASC
-  `).all(anchor.id);
+  `).all(anchor.id));
 
   // If existing recommendation has exactly 3 items and ALL are in stock, return persisted recommendation
   if (existingRows.length === 3 && existingRows.every(row => row.stock > 0 && row.status === 'IN_STOCK')) {
@@ -194,18 +194,18 @@ export function getRecommendationsForProduct(productId, db) {
 
   // 3. Stale or Missing: Allocate a New Unique Outfit Combination
   // Remove stale rows for this anchor
-  db.prepare('DELETE FROM outfit_recommendations WHERE base_product_id = ?').run(anchor.id);
+  (await db.prepare('DELETE FROM outfit_recommendations WHERE base_product_id = ?').run(anchor.id));
 
   // Retrieve existing signatures and trios allocated to other anchors
-  const otherAllocations = db.prepare(`
+  const otherAllocations = (await db.prepare(`
     SELECT base_product_id, recommended_product_id, slot_type, combination_signature
     FROM outfit_recommendations
     WHERE base_product_id != ?
     ORDER BY base_product_id ASC, id ASC
-  `).all(anchor.id);
+  `).all(anchor.id));
 
   const usedSignatures = new Set(otherAllocations.map(r => r.combination_signature).filter(Boolean));
-  
+
   // Group other allocations by base_product_id to extract used trios
   const usedTrios = new Set();
   const byBase = {};
@@ -220,10 +220,10 @@ export function getRecommendationsForProduct(productId, db) {
   }
 
   // Fetch all in-stock candidate products
-  const allInStock = db.prepare(`
+  const allInStock = (await db.prepare(`
     SELECT * FROM products
     WHERE stock > 0 AND status = 'IN_STOCK' AND id != ?
-  `).all(anchor.id);
+  `).all(anchor.id));
 
   const archKey = getProductArchetype(anchor);
   const archetype = ARCHETYPES[archKey];
@@ -320,13 +320,13 @@ export function getRecommendationsForProduct(productId, db) {
     VALUES (?, ?, ?, ?, ?)
   `);
 
-  const persistTransaction = db.transaction(() => {
-    insertStmt.run(anchor.id, item1.id, slot1Name, reason1, chosenSig);
-    insertStmt.run(anchor.id, item2.id, slot2Name, reason2, chosenSig);
-    insertStmt.run(anchor.id, item3.id, slot3Name, reason3, chosenSig);
+  const persistTransaction = db.transaction(async () => {
+    (await insertStmt.run(anchor.id, item1.id, slot1Name, reason1, chosenSig));
+    (await insertStmt.run(anchor.id, item2.id, slot2Name, reason2, chosenSig));
+    (await insertStmt.run(anchor.id, item3.id, slot3Name, reason3, chosenSig));
   });
 
-  persistTransaction();
+  (await persistTransaction());
 
   return {
     available: true,
@@ -410,14 +410,14 @@ export function getRecommendationsForProduct(productId, db) {
  * Initializes and pre-allocates unique recommendations for all 50 VTON tops & bottoms.
  * Guarantees zero duplicate signatures across the entire catalog.
  */
-export function initializeAllRecommendations(db) {
-  const anchors = db.prepare(`
+export async function initializeAllRecommendations(db) {
+  const anchors = (await db.prepare(`
     SELECT id, vton_garment_category FROM products
     WHERE vton_supported = 1
     ORDER BY id ASC
-  `).all();
+  `).all());
 
   for (const anchor of anchors) {
-    getRecommendationsForProduct(anchor.id, db);
+    (await getRecommendationsForProduct(anchor.id, db));
   }
 }

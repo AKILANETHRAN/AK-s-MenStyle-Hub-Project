@@ -25,9 +25,9 @@ import mongoRoutes from './routes/mongoRoutes.js';
 // Load environment variables before initializing external services.
 dotenv.config();
 
-// Initialize SQLite database, tables, and indexes
-initDatabase();
-initializeAllRecommendations(db);
+// Initialize PostgreSQL before accepting requests.
+await initDatabase();
+(await initializeAllRecommendations(db));
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -39,7 +39,7 @@ app.use(express.static('public'));
 
 // Health Check Endpoint (supports both /health and /api/health)
 app.get(['/health', '/api/health'], async (req, res) => {
-  const dbStatus = checkDatabaseHealth();
+  const dbStatus = await checkDatabaseHealth();
   const mongoStatus = await checkMongoHealth();
   let vtonStatus = 'FASHN VTON v1.5 LOCAL (Unavailable)';
   try {
@@ -54,8 +54,8 @@ app.get(['/health', '/api/health'], async (req, res) => {
   } catch (e) {
     vtonStatus = 'FASHN VTON v1.5 LOCAL';
   }
-  res.status(200).json({
-    status: 'ok',
+  res.status(dbStatus === 'connected' ? 200 : 503).json({
+    status: dbStatus === 'connected' ? 'ok' : 'error',
     service: 'StyleHub Express Backend',
     database: dbStatus,
     mongodb: mongoStatus,
