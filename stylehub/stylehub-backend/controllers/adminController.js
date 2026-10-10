@@ -348,7 +348,7 @@ export function getAdminEmailStatus(req, res) {
     return res.status(200).json({
       enabled: config.isEnabled,
       configured: config.isConfigured,
-      provider: 'SMTP',
+      provider: config.provider.toUpperCase(),
       sender: config.from,
       hostConfigured: Boolean(config.host),
       port: config.port

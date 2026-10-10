@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test test/frontend-url-test.js test/postgres-test.js",
+    "test": "node --test test/frontend-url-test.js test/postgres-test.js test/email-provider-test.js",
+    "test:email": "node --test test/email-provider-test.js",
     "test:postgres": "node --test test/postgres-test.js",
     "db:init": "node scripts/init-postgres.js",
     "db:migrate": "node scripts/migrate-sqlite-to-postgres.js"

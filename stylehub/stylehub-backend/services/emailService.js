@@ -1,42 +1,14 @@
 import nodemailer from 'nodemailer';
 import { getMessageTemplate, renderMessageTemplate } from './messageTemplateService.js';
 import db from '../config/database.js';
+import { readEmailConfig, sendResendEmail } from './emailProvider.js';
 
 /**
  * Safe email configuration inspector.
  * IMPORTANT: Never exposes SMTP_PASS or any secret.
  */
 export function getEmailConfig() {
-  const isEnabled = process.env.EMAIL_ENABLED === 'true';
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
-  const secure = process.env.SMTP_SECURE === 'true' || port === 465;
-  const user = process.env.SMTP_USER || process.env.GMAIL_SENDER_EMAIL || 'akmensstylehub@gmail.com';
-  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || '';
-  const from = process.env.EMAIL_FROM || process.env.SMTP_USER || 'akmensstylehub@gmail.com';
-  const fromName = process.env.EMAIL_FROM_NAME || "AK'S MEN STYLE";
-
-  const isConfigured = Boolean(
-    host &&
-    port > 0 &&
-    user &&
-    user.includes('@') &&
-    pass &&
-    pass.trim().length > 0 &&
-    from &&
-    from.includes('@')
-  );
-
-  return {
-    isEnabled,
-    isConfigured,
-    host,
-    port,
-    secure,
-    user,
-    from,
-    fromName
-  };
+  return readEmailConfig();
 }
 
 /**
@@ -89,10 +61,13 @@ export async function verifySmtpConnection() {
     return {
       success: false,
       status: 'NOT_CONFIGURED',
-      message: 'SMTP credentials not configured in environment.'
+      message: 'Email credentials not configured in environment.'
     };
   }
 
+  if (config.provider === 'resend') {
+    return { success: false, status: 'NOT_VERIFIED', message: 'Resend settings are configured; SMTP verification does not verify the email API.' };
+  }
   try {
     const transporter = createSmtpTransporter();
     await transporter.verify();
@@ -527,7 +502,7 @@ export async function sendEmail({
   // 3. Configuration Check
   if (!config.isConfigured) {
     if (purchaseId && userId) {
-      (await recordEmailDelivery(purchaseId, userId, 'NOT_CONFIGURED', to, null, 'SMTP credentials not configured in environment', eventType, subject));
+      (await recordEmailDelivery(purchaseId, userId, 'NOT_CONFIGURED', to, null, 'Email credentials not configured in environment', eventType, subject));
     }
     return {
       status: 'NOT_CONFIGURED',
@@ -548,17 +523,18 @@ export async function sendEmail({
     };
   }
 
-  // 5. Real SMTP Dispatch via Nodemailer
+  // 5. Dispatch using the explicitly configured provider.
   try {
-    const transporter = createSmtpTransporter();
-
-    const info = await transporter.sendMail({
+    const message = {
       from: `"${config.fromName}" <${config.from}>`,
       to: to.trim(),
       subject: subject.trim(),
       text: text || '',
       html: html || ''
-    });
+    };
+    const info = config.provider === 'resend'
+      ? await sendResendEmail(config, message)
+      : await createSmtpTransporter().sendMail(message);
 
     if (purchaseId && userId) {
       (await recordEmailDelivery(purchaseId, userId, 'SENT', to, info.messageId, null, eventType, subject));
@@ -569,7 +545,7 @@ export async function sendEmail({
       messageId: info.messageId
     };
   } catch (err) {
-    console.error('[EMAIL ERROR] Failed to send email via SMTP:', err.message);
+    console.error(`[EMAIL ERROR] Failed to send email via ${config.provider}:`, err.message);
     if (purchaseId && userId) {
       (await recordEmailDelivery(purchaseId, userId, 'FAILED', to, null, err.message, eventType, subject));
     }
